@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Vault - Orders</title>
+    <meta name="description"
+        content="Tienda en línea de moda urbana, gorras, accesorios y ropa con diseño minimalista y elegante.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style2.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="logo" onclick="toggleSidebar()">
+            THE VAULT
+        </div>
+        <div style="flex: 1; display: flex; justify-content: center; padding: 0 20px;">
+            <div style="position: relative; width: 100%; max-width: 400px;">
+                <input type="text" id="search-input" placeholder="Search products..."
+                    style="width: 100%; padding: 10px 15px 10px 40px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 30px; outline: none; transition: border-color 0.3s ease;">
+                <i class="fas fa-search"
+                    style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #8f8f8f;"></i>
+            </div>
+        </div>
+        <div id="auth-section" style="display: flex; gap: 15px; align-items: center;">
+            <a href="login.html"
+                style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">Iniciar Sesión</a>
+        </div>
+    </header>
+
+    <div class="sidebar" id="sidebar">
+
+        <div class="menu-category">
+
+            <a href="index.html" class="menu-title" style="text-decoration: none;">
+                THE VAULT
+            </a>
+
+        </div>
+
+        <div class="menu-category">
+            <p class="Designers">
+                Designers
+            </p>
+        </div>
+
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Men
+                <span class="arrow">⌄</span>
+            </button>
+            <div class="submenu">
+                <a href="HoodiesMen.html">Hoodies</a>
+                <a href="ShirtsMen.html">Shirts</a>
+                <a href="PantsMen.html">Pants</a>
+                <a href="ShortsMen.html">Shorts</a>
+                <a href="ShoesMen.html">Shoes</a>
+            </div>
+        </div>
+
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Women
+                <span class="arrow">⌄</span>
+            </button>
+            <div class="submenu">
+                <a href="HoodiesWo.html">Hoodies</a>
+                <a href="ShirtsWo.html">Shirts</a>
+                <a href="PantsWo.html">Pants</a>
+                <a href="ShoesWo.html">Shoes</a>
+            </div>
+        </div>
+
+        <div class="menu-category">
+            <a href="Accessories.html" class="menu-title">
+                Accessories
+            </a>
+        </div>
+
+        <div class="menu-category">
+
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Collectibles
+                <span class="arrow">⌄</span>
+            </button>
+
+            <div class="submenu">
+
+                <a href="Pokemon.html">Pokemon</a>
+
+                <div class="menu-category">
+
+                    <button class="menu-title" onclick="toggleCategory(this)">
+                        Sports
+                        <span class="arrow">⌄</span>
+                    </button>
+                    <div class="submenu">
+                        <a href="Baseball.html">Baseball</a>
+                        <a href="Basketball.html">Basketball</a>
+                        <a href="Football.html">Football</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-category">
+            <a href="Favorites.html" class="menu-title" style="text-decoration: none;">
+                My Favorites
+            </a>
+        </div>
+        <div class="menu-category">
+            <a href="Orders.html" class="menu-title" style="text-decoration: none;">
+                My Orders
+            </a>
+        </div>
+        <div class="menu-category">
+            <a href="Cart.html" class="menu-title" style="text-decoration: none; display: flex; align-items: center;">
+                My Cart <span id="cart-badge" class="cart-badge"></span>
+            </a>
+        </div>
+        <div class="menu-category admin-only" style="display: none;">
+            <a href="Inventory.html" class="menu-title" style="text-decoration: none;">
+                Inventory
+            </a>
+        </div>
+    </div>
+
+    <section class="catalog-section" id="catalog">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px;">
+            <h2 class="section-title" style="margin-bottom: 0;">
+                My Orders
+            </h2>
+        </div>
+
+        <div id="orders-container" style="display: flex; flex-direction: column; gap: 20px;">
+            <!-- Los pedidos se cargarán dinámicamente aquí -->
+            <p style="color: #a3a3a3; text-align: center; padding: 40px;">Please log in to view your orders.</p>
+        </div>
+    </section>
+
+
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">The vault</div>
+            <p style="color: var(--light-gray); margin-bottom: 20px; max-width: 400px; font-size: 0.9rem;">Premium style
+                and quality</p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/the.vault.us?igsh=OWVyNDZvZ2gxcmp3" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.tiktok.com/@the_vault_us_?_r=1&_t=ZP-96KzJc3L5bD" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.facebook.com/share/18fn9VAkEG/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2026 The vault. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script type="module" src="app.js"></script>
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+        const container = document.getElementById('orders-container');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                container.innerHTML = '<p style="color: #a3a3a3; text-align: center; padding: 40px;">Loading orders...</p>';
+                try {
+                    const q = query(
+                        collection(db, "orders"),
+                        where("userId", "==", user.uid)
+                    );
+                    const querySnapshot = await getDocs(q);
+
+                    if (querySnapshot.empty) {
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 60px 20px; background: #0d0d0d; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                                <i class="fas fa-box-open" style="font-size: 60px; color: #333; margin-bottom: 20px;"></i>
+                                <h3 style="margin-bottom: 15px;">No orders yet</h3>
+                                <p style="color: #a3a3a3; margin-bottom: 25px;">You haven't placed any orders.</p>
+                                <a href="index.html" style="padding: 12px 30px; background: white; color: black; text-decoration: none; border-radius: 30px; font-weight: bold;">Start Shopping</a>
+                            </div>`;
+                        return;
+                    }
+
+                    // Sort locally since Firestore requires composite index for query+where+orderBy
+                    let orders = [];
+                    querySnapshot.forEach(doc => {
+                        orders.push({ id: doc.id, ...doc.data() });
+                    });
+                    orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    let html = '';
+                    orders.forEach(order => {
+                        const date = new Date(order.date).toLocaleDateString();
+                        const statusColor = order.status === 'Pending' ? '#f39c12' : (order.status === 'Shipped' ? '#3498db' : '#2ecc71');
+
+                        html += `
+                        <div style="background: #0d0d0d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; margin-bottom: 20px;">
+                            <div style="background: #1a1a1a; padding: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div>
+                                    <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">ORDER PLACED</div>
+                                    <div style="font-weight: bold;">${date}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">TOTAL</div>
+                                    <div style="font-weight: bold;">$${parseFloat(order.total).toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">SHIP TO</div>
+                                    <div style="font-weight: bold;">${order.name}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">ORDER ID # ${order.id}</div>
+                                    <div style="font-weight: bold; color: ${statusColor};">● ${order.status || 'Pending'}</div>
+                                </div>
+                            </div>
+                            <div style="padding: 20px;">
+                                ${(order.items || []).map(item => `
+                                    <div style="display: flex; gap: 15px; margin-bottom: 15px; align-items: center;">
+                                        <img src="${item.imageUrl}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; background: #222;" onerror="this.src='https://via.placeholder.com/70'">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 600; margin-bottom: 4px;">${item.title}</div>
+                                            <div style="font-size: 13px; color: #8f8f8f;">Qty: ${item.quantity || 1} &nbsp;|&nbsp; $${parseFloat(item.price).toFixed(2)} each</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                    });
+
+                    container.innerHTML = html;
+                } catch (error) {
+                    container.innerHTML = '<p style="color: #ff4d4d; text-align: center; padding: 40px;">Error loading orders.</p>';
+                    console.error("Error:", error);
+                }
+            } else {
+                container.innerHTML = '<p style="color: #a3a3a3; text-align: center; padding: 40px;">Please log in to view your orders.</p>';
+            }
+        });
+    </script>
+
+</html>

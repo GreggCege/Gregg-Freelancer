@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Vault - Cart</title>
+    <meta name="description" content="Your shopping cart at The Vault.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style2.css">
+    <style>
+        .cart-section {
+            padding: 120px 8%;
+            min-height: 80vh;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .cart-items {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 20px;
+            transition: opacity 0.3s ease, border-color 0.3s ease;
+        }
+
+        .cart-item.disabled {
+            opacity: 0.35;
+        }
+
+        .cart-item img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+
+        .cart-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cart-item-category {
+            font-size: 11px;
+            color: #8f8f8f;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .cart-item-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cart-item-price {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .cart-toggle-btn {
+            padding: 8px 16px;
+            background: #1a1a1a;
+            color: #a3a3a3;
+            border: 1px solid #333;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: .3s;
+            white-space: nowrap;
+        }
+
+        .cart-toggle-btn:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .cart-toggle-btn.active {
+            background: white;
+            color: black;
+            border-color: white;
+        }
+
+        .cart-remove-btn {
+            padding: 8px 16px;
+            background: transparent;
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: .3s;
+            white-space: nowrap;
+        }
+
+        .cart-remove-btn:hover {
+            background: #ff4d4d;
+            color: white;
+        }
+
+        .cart-summary {
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding-top: 30px;
+            text-align: right;
+        }
+
+        .cart-total-label {
+            color: #a3a3a3;
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .cart-total-price {
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: #a3a3a3;
+        }
+
+        .cart-empty i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .cart-empty p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .cart-empty a {
+            display: inline-block;
+            padding: 14px 35px;
+            background: white;
+            color: black;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 15px;
+            transition: .3s;
+        }
+
+        .cart-empty a:hover {
+            background: #ccc;
+        }
+
+        @media (max-width: 600px) {
+            .cart-section { padding: 80px 20px; }
+            .cart-item { flex-wrap: wrap; }
+            .cart-item img { width: 70px; height: 70px; }
+            .cart-item-title { font-size: 15px; }
+            .cart-item-actions { flex-direction: row; }
+            .cart-total-price { font-size: 28px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo" onclick="toggleSidebar()">
+            THE VAULT
+        </div>
+        <div style="flex: 1; display: flex; justify-content: center; padding: 0 20px;">
+            <div style="position: relative; width: 100%; max-width: 400px;">
+                <input type="text" id="search-input" placeholder="Search products..."
+                    style="width: 100%; padding: 10px 15px 10px 40px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 30px; outline: none; transition: border-color 0.3s ease;">
+                <i class="fas fa-search"
+                    style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #8f8f8f;"></i>
+            </div>
+        </div>
+        <div id="auth-section" style="display: flex; gap: 15px; align-items: center;">
+            <a href="login.html"
+                style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">Log In</a>
+        </div>
+    </header>
+
+    <div class="sidebar" id="sidebar">
+
+        <div class="menu-category">
+            <a href="index.html" class="menu-title" style="text-decoration: none;">
+                THE VAULT
+            </a>
+        </div>
+
+        <div class="menu-category">
+            <p class="Designers">
+                Designers
+            </p>
+        </div>
+
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Men
+                <span class="arrow">⌄</span>
+            </button>
+            <div class="submenu">
+                <a href="HoodiesMen.html">Hoodies</a>
+                <a href="ShirtsMen.html">Shirts</a>
+                <a href="PantsMen.html">Pants</a>
+                <a href="ShortsMen.html">Shorts</a>
+                <a href="ShoesMen.html">Shoes</a>
+            </div>
+        </div>
+
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Women
+                <span class="arrow">⌄</span>
+            </button>
+            <div class="submenu">
+                <a href="HoodiesWo.html">Hoodies</a>
+                <a href="ShirtsWo.html">Shirts</a>
+                <a href="PantsWo.html">Pants</a>
+                <a href="ShoesWo.html">Shoes</a>
+            </div>
+        </div>
+
+        <div class="menu-category">
+            <a href="Accessories.html" class="menu-title">
+                Accessories
+            </a>
+        </div>
+
+        <div class="menu-category">
+
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Collectibles
+                <span class="arrow">⌄</span>
+            </button>
+
+            <div class="submenu">
+
+                <a href="Pokemon.html">Pokemon</a>
+
+                <div class="menu-category">
+
+                    <button class="menu-title" onclick="toggleCategory(this)">
+                        Sports
+                        <span class="arrow">⌄</span>
+                    </button>
+                    <div class="submenu">
+                        <a href="Baseball.html">Baseball</a>
+                        <a href="Basketball.html">Basketball</a>
+                        <a href="Football.html">Football</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-category">
+            <a href="Favorites.html" class="menu-title" style="text-decoration: none;">
+                My Favorites
+            </a>
+        </div>
+        <div class="menu-category">
+            <a href="Orders.html" class="menu-title" style="text-decoration: none;">
+                My Orders
+            </a>
+        </div>
+        <div class="menu-category">
+            <a href="Cart.html" class="menu-title" style="text-decoration: none; display: flex; align-items: center;">
+                My Cart <span id="cart-badge" class="cart-badge"></span>
+            </a>
+        </div>
+        <div class="menu-category admin-only" style="display: none;">
+            <a href="Inventory.html" class="menu-title" style="text-decoration: none;">
+                Inventory
+            </a>
+        </div>
+    </div>
+
+    <section class="cart-section">
+        <div class="cart-header">
+            <h1 class="section-title" style="margin-bottom: 0;">My Cart</h1>
+        </div>
+
+        <div id="cart-container">
+            <!-- rendered by JS -->
+        </div>
+    </section>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px);">
+        <div style="background: #0d0d0d; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 500px; padding: 40px; position: relative;">
+            <button onclick="document.getElementById('checkout-modal').style.display='none'" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; cursor: pointer;">&times;</button>
+            <h2 style="margin-bottom: 25px;">Checkout</h2>
+            <form id="checkout-form">
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">Full Name</label>
+                    <input type="text" id="chk-name" required style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">Shipping Address</label>
+                    <input type="text" id="chk-address" required style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">City / State / ZIP</label>
+                    <input type="text" id="chk-city" required style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                </div>
+                <button type="submit" id="chk-submit" style="width: 100%; padding: 15px; background: white; color: black; font-weight: bold; border-radius: 30px; font-size: 16px; border: none; cursor: pointer; transition: .3s;">Place Order</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">The vault</div>
+            <p style="color: var(--light-gray); margin-bottom: 20px; max-width: 400px; font-size: 0.9rem;">Premium style and quality</p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/the.vault.us?igsh=OWVyNDZvZ2gxcmp3" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.tiktok.com/@the_vault_us_?_r=1&_t=ZP-96KzJc3L5bD" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.facebook.com/share/18fn9VAkEG/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2026 The vault. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script type="module" src="app.js"></script>
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+        window.renderCart = function() {
+            const container = document.getElementById('cart-container');
+            let cart = [];
+            try { cart = JSON.parse(localStorage.getItem('cart')) || []; } catch(e) {}
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="cart-empty">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>Your cart is empty.</p>
+                        <a href="index.html">Continue Shopping</a>
+                    </div>`;
+                return;
+            }
+
+            let itemsHTML = '<div class="cart-items">';
+            cart.forEach((item, idx) => {
+                const enabled = item.enabled !== false;
+                const qty = item.quantity || 1;
+                const lineTotal = (parseFloat(item.price || 0) * qty).toFixed(2);
+                itemsHTML += `
+                <div class="cart-item ${enabled ? '' : 'disabled'}" id="cart-item-${idx}">
+                    <img src="${item.imageUrl}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/90'">
+                    <div class="cart-item-info">
+                        <div class="cart-item-category">${item.category || ''}</div>
+                        <div class="cart-item-title">${item.title}</div>
+                        <div class="cart-item-price">$${lineTotal} <span style="font-size:13px;color:#a3a3a3;font-weight:400;">($${parseFloat(item.price).toFixed(2)} each)</span></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;background:#1a1a1a;border:1px solid #333;border-radius:30px;padding:6px 12px;flex-shrink:0;">
+                        <button onclick="changeCartQty(${idx}, -1)" style="background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:0 4px;line-height:1;">−</button>
+                        <span style="font-size:16px;font-weight:bold;min-width:20px;text-align:center;">${qty}</span>
+                        <button onclick="changeCartQty(${idx}, 1)" style="background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:0 4px;line-height:1;">+</button>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="cart-toggle-btn ${enabled ? 'active' : ''}"
+                            onclick="toggleCartItem(${idx})">
+                            ${enabled ? '✓ Enabled' : '○ Disabled'}
+                        </button>
+                        <button class="cart-remove-btn" onclick="removeCartItem(${idx})">
+                            <i class="fas fa-trash-alt"></i> Remove
+                        </button>
+                    </div>
+                </div>`;
+            });
+            itemsHTML += '</div>';
+
+            const enabledItems = cart.filter(item => item.enabled !== false);
+            const total = enabledItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
+            const totalQty = enabledItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            itemsHTML += `
+            <div class="cart-summary">
+                <div class="cart-total-label">TOTAL (${totalQty} item${totalQty !== 1 ? 's' : ''})</div>
+                <div class="cart-total-price" style="margin-bottom: 20px;">$${total.toFixed(2)}</div>
+                <button onclick="window.openCheckout()" style="padding: 15px 40px; background: white; color: black; font-weight: bold; border-radius: 30px; font-size: 16px; border: none; cursor: pointer; transition: .3s; ${totalQty === 0 ? 'opacity:0.5; pointer-events:none;' : ''}">Proceed to Checkout</button>
+            </div>`;
+
+            container.innerHTML = itemsHTML;
+        }
+
+        window.changeCartQty = function(idx, delta) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cart[idx]) {
+                const current = cart[idx].quantity || 1;
+                cart[idx].quantity = Math.max(1, current + delta);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                if (window.syncCartToCloud) window.syncCartToCloud();
+                window.renderCart();
+                if (window.updateCartBadge) window.updateCartBadge();
+            }
+        }
+
+        window.toggleCartItem = function(idx) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cart[idx]) {
+                cart[idx].enabled = cart[idx].enabled === false ? true : false;
+                localStorage.setItem('cart', JSON.stringify(cart));
+                if (window.syncCartToCloud) window.syncCartToCloud();
+                window.renderCart();
+            }
+        }
+
+        window.removeCartItem = function(idx) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart.splice(idx, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            if (window.syncCartToCloud) window.syncCartToCloud();
+            window.renderCart();
+            if (window.updateCartBadge) window.updateCartBadge();
+        }
+
+        window.openCheckout = function() {
+            document.getElementById('checkout-modal').style.display = 'flex';
+        }
+
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('chk-submit');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const enabledItems = cart.filter(item => item.enabled !== false);
+            const total = enabledItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
+
+            const orderData = {
+                userId: auth.currentUser ? auth.currentUser.uid : 'anonymous',
+                name: document.getElementById('chk-name').value,
+                address: document.getElementById('chk-address').value,
+                city: document.getElementById('chk-city').value,
+                items: enabledItems,
+                total: total,
+                date: new Date().toISOString(),
+                status: 'Pending'
+            };
+
+            // Assuming user is authenticated to place order, which we enforce in app.js detail-cart-btn
+            // But we can just use the auth info from window if available, or just save the order
+            // Here we assume currentUser might be loaded via app.js
+            
+            try {
+                await addDoc(collection(db, "orders"), orderData);
+                alert("Order placed successfully!");
+                
+                // Remove enabled items from cart
+                const remainingItems = cart.filter(item => item.enabled === false);
+                localStorage.setItem('cart', JSON.stringify(remainingItems));
+                if (window.syncCartToCloud) window.syncCartToCloud();
+                
+                document.getElementById('checkout-modal').style.display = 'none';
+                e.target.reset();
+                window.renderCart();
+                if (window.updateCartBadge) window.updateCartBadge();
+            } catch (error) {
+                alert("Error placing order: " + error.message);
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Place Order';
+        });
+
+        window.renderCart();
+    </script>
+
+</body>
+
+</html>

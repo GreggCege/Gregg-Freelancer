@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Vault</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style2.css">
+</head>
+
+<body>
+
+    <header>
+
+        <div class="logo" onclick="toggleSidebar()">
+            THE VAULT
+        </div>
+        <div style="flex: 1; display: flex; justify-content: center; padding: 0 20px;">
+            <div style="position: relative; width: 100%; max-width: 400px;">
+                <input type="text" id="search-input" placeholder="Search products..."
+                    style="width: 100%; padding: 10px 15px 10px 40px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 30px; outline: none; transition: border-color 0.3s ease;">
+                <i class="fas fa-search"
+                    style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #8f8f8f;"></i>
+            </div>
+        </div>
+        <div id="auth-section" style="display: flex; gap: 15px; align-items: center;">
+            <a href="login.html" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">Log
+                In</a>
+        </div>
+
+    </header>
+
+    <div class="sidebar" id="sidebar">
+
+        <div class="menu-category">
+
+            <a href="index.html" class="menu-title" style="text-decoration: none;">
+                THE VAULT
+            </a>
+
+        </div>
+
+        <div class="menu-category">
+            <p class="Designers">
+                Designers
+            </p>
+        </div>
+
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Men
+                <span class="arrow">⌄</span>
+            </button>
+            <div class="submenu">
+                <a href="HoodiesMen.html">Hoodies</a>
+                <a href="ShirtsMen.html">Shirts</a>
+                <a href="PantsMen.html">Pants</a>
+                <a href="ShortsMen.html">Shorts</a>
+                <a href="ShoesMen.html">Shoes</a>
+            </div>
+        </div>
+
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Women
+                <span class="arrow">⌄</span>
+            </button>
+            <div class="submenu">
+                <a href="HoodiesWo.html">Hoodies</a>
+                <a href="ShirtsWo.html">Shirts</a>
+                <a href="PantsWo.html">Pants</a>
+                <a href="ShoesWo.html">Shoes</a>
+            </div>
+        </div>
+
+        <div class="menu-category">
+            <a href="Accessories.html" class="menu-title">
+                Accessories
+            </a>
+        </div>
+
+        <div class="menu-category">
+
+            <button class="menu-title" onclick="toggleCategory(this)">
+                Collectibles
+                <span class="arrow">⌄</span>
+            </button>
+
+            <div class="submenu">
+
+                <a href="Pokemon.html">Pokemon</a>
+
+                <div class="menu-category">
+
+                    <button class="menu-title" onclick="toggleCategory(this)">
+                        Sports
+                        <span class="arrow">⌄</span>
+                    </button>
+                    <div class="submenu">
+                        <a href="Baseball.html">Baseball</a>
+                        <a href="Basketball.html">Basketball</a>
+                        <a href="Football.html">Football</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-category">
+            <a href="Favorites.html" class="menu-title" style="text-decoration: none;">
+                My Favorites
+            </a>
+        </div>
+        <div class="menu-category">
+            <a href="Orders.html" class="menu-title" style="text-decoration: none;">
+                My Orders
+            </a>
+        </div>
+        <div class="menu-category">
+            <a href="Cart.html" class="menu-title" style="text-decoration: none; display: flex; align-items: center;">
+                My Cart <span id="cart-badge" class="cart-badge"></span>
+            </a>
+        </div>
+        <div class="menu-category admin-only" style="display: none;">
+            <a href="Inventory.html" class="menu-title" style="text-decoration: none;">
+                Inventory
+            </a>
+        </div>
+    </div>
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <h1>The Vault</h1>
+
+            <p>
+                Premium Fashion • Rare Collectibles • Exclusive Culture
+            </p>
+
+            <button id="hero-action-btn" onclick="window.location.href='login.html'">
+                REGISTER NOW
+            </button>
+            <div id="hero-countdown" style="display: none; margin-top: 30px;"></div>
+
+        </div>
+
+    </section>
+
+    <section class="catalog-section" id="catalog">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px;">
+            <h2 class="section-title" style="margin-bottom: 0;">
+                Featured Catalog
+            </h2>
+            <button id="add-product-btn" class="product-btn" style="display: none;">
+                + Add Product
+            </button>
+        </div>
+
+        <div class="catalog-grid" id="catalog-grid" data-featured="true">
+            <!-- Los productos se cargarán dinámicamente aquí -->
+        </div>
+    </section>
+
+    <!-- Modal para Añadir/Edit Product -->
+    <div id="product-modal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+        <div
+            style="background: #0d0d0d; padding: 40px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.05); width: 100%; max-width: 500px;">
+            <h2 id="modal-title" style="margin-bottom: 20px;">Add Product</h2>
+            <form id="product-form">
+                <input type="hidden" id="prod-id">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #8f8f8f; font-size: 14px;">Title</label>
+                    <input type="text" id="prod-title" required
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #8f8f8f; font-size: 14px;">Category (e.g.
+                        MEN • HOODIES)</label>
+                    <input type="text" id="prod-category" required
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #8f8f8f; font-size: 14px;">Price</label>
+                    <input type="number" id="prod-price" required
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label
+                        style="display: block; margin-bottom: 5px; color: #8f8f8f; font-size: 14px;">Description</label>
+                    <textarea id="prod-desc" required
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px; resize: none;"></textarea>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #8f8f8f; font-size: 14px;">Image
+                        URL</label>
+                    <input type="url" id="prod-image" required
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #8f8f8f; font-size: 14px;">Stock
+                        Quantity</label>
+                    <input type="number" id="prod-stock" required min="0" value="1"
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px;">
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 5px; color: #8f8f8f; font-size: 14px;">Available Sizes
+                        (Optional)</label>
+                    <input type="text" id="prod-sizes" placeholder="e.g. S, M, L, XL"
+                        style="width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 8px;">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" onclick="document.getElementById('product-modal').style.display='none'"
+                        style="padding: 10px 20px; background: transparent; color: white; border: 1px solid #333; border-radius: 30px; cursor: pointer;">Cancel</button>
+                    <button type="submit"
+                        style="padding: 10px 20px; background: white; color: black; border: none; border-radius: 30px; cursor: pointer; font-weight: bold;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">The vault</div>
+            <p style="color: var(--light-gray); margin-bottom: 20px; max-width: 400px; font-size: 0.9rem;">Premium style
+                and quality</p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/the.vault.us?igsh=OWVyNDZvZ2gxcmp3" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.tiktok.com/@the_vault_us_?_r=1&_t=ZP-96KzJc3L5bD" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.facebook.com/share/18fn9VAkEG/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2026 The vault. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script type="module" src="app.js"></script>
+
+</body>
+
+</html>
