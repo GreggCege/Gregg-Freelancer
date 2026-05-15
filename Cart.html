@@ -34,7 +34,7 @@
             align-items: center;
             gap: 20px;
             background: #0d0d0d;
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
             padding: 20px;
             transition: opacity 0.3s ease, border-color 0.3s ease;
@@ -126,7 +126,7 @@
         }
 
         .cart-summary {
-            border-top: 1px solid rgba(255,255,255,0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             padding-top: 30px;
             text-align: right;
         }
@@ -178,12 +178,30 @@
         }
 
         @media (max-width: 600px) {
-            .cart-section { padding: 80px 20px; }
-            .cart-item { flex-wrap: wrap; }
-            .cart-item img { width: 70px; height: 70px; }
-            .cart-item-title { font-size: 15px; }
-            .cart-item-actions { flex-direction: row; }
-            .cart-total-price { font-size: 28px; }
+            .cart-section {
+                padding: 80px 20px;
+            }
+
+            .cart-item {
+                flex-wrap: wrap;
+            }
+
+            .cart-item img {
+                width: 70px;
+                height: 70px;
+            }
+
+            .cart-item-title {
+                font-size: 15px;
+            }
+
+            .cart-item-actions {
+                flex-direction: row;
+            }
+
+            .cart-total-price {
+                font-size: 28px;
+            }
         }
     </style>
 </head>
@@ -203,8 +221,8 @@
             </div>
         </div>
         <div id="auth-section" style="display: flex; gap: 15px; align-items: center;">
-            <a href="login.html"
-                style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">Log In</a>
+            <a href="login.html" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">Log
+                In</a>
         </div>
     </header>
 
@@ -313,24 +331,34 @@
     </section>
 
     <!-- Checkout Modal -->
-    <div id="checkout-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px);">
-        <div style="background: #0d0d0d; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 500px; padding: 40px; position: relative;">
-            <button onclick="document.getElementById('checkout-modal').style.display='none'" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; cursor: pointer;">&times;</button>
+    <div id="checkout-modal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px);">
+        <div
+            style="background: #0d0d0d; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 500px; padding: 40px; position: relative;">
+            <button onclick="document.getElementById('checkout-modal').style.display='none'"
+                style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; cursor: pointer;">&times;</button>
             <h2 style="margin-bottom: 25px;">Checkout</h2>
             <form id="checkout-form">
                 <div style="margin-bottom: 15px;">
                     <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">Full Name</label>
-                    <input type="text" id="chk-name" required style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                    <input type="text" id="chk-name" required
+                        style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">Shipping Address</label>
-                    <input type="text" id="chk-address" required style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">Shipping
+                        Address</label>
+                    <input type="text" id="chk-address" required
+                        style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
                 </div>
                 <div style="margin-bottom: 25px;">
-                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">City / State / ZIP</label>
-                    <input type="text" id="chk-city" required style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
+                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">City / State /
+                        ZIP</label>
+                    <input type="text" id="chk-city" required
+                        style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
                 </div>
-                <button type="submit" id="chk-submit" style="width: 100%; padding: 15px; background: white; color: black; font-weight: bold; border-radius: 30px; font-size: 16px; border: none; cursor: pointer; transition: .3s;">Place Order</button>
+                <button type="submit" id="chk-submit"
+                    style="width: 100%; padding: 15px; background: white; color: black; font-weight: bold; border-radius: 30px; font-size: 16px; border: none; cursor: pointer; transition: .3s;">Place
+                    Order</button>
             </form>
         </div>
     </div>
@@ -338,11 +366,15 @@
     <footer>
         <div class="footer-content">
             <div class="footer-logo">The vault</div>
-            <p style="color: var(--light-gray); margin-bottom: 20px; max-width: 400px; font-size: 0.9rem;">Premium style and quality</p>
+            <p style="color: var(--light-gray); margin-bottom: 20px; max-width: 400px; font-size: 0.9rem;">Premium style
+                and quality</p>
             <div class="social-links">
-                <a href="https://www.instagram.com/the.vault.us/" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
-                <a href="https://www.tiktok.com/@the_vault_us_" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
-                <a href="https://www.facebook.com/share/18fn9VAkEG/" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
+                <a href="https://www.instagram.com/the.vault.us/" target="_blank" rel="noopener noreferrer"><i
+                        class="fab fa-instagram"></i></a>
+                <a href="https://www.tiktok.com/@the_vault_us_" target="_blank" rel="noopener noreferrer"><i
+                        class="fab fa-tiktok"></i></a>
+                <a href="https://www.facebook.com/share/18fn9VAkEG/" target="_blank" rel="noopener noreferrer"><i
+                        class="fab fa-facebook"></i></a>
             </div>
         </div>
         <p class="copyright">&copy; 2026 The vault. All rights reserved.</p>
@@ -354,10 +386,10 @@
         import { auth, db } from './firebase-config.js';
         import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-        window.renderCart = function() {
+        window.renderCart = function () {
             const container = document.getElementById('cart-container');
             let cart = [];
-            try { cart = JSON.parse(localStorage.getItem('cart')) || []; } catch(e) {}
+            try { cart = JSON.parse(localStorage.getItem('cart')) || []; } catch (e) { }
 
             if (cart.length === 0) {
                 container.innerHTML = `
@@ -413,7 +445,7 @@
             container.innerHTML = itemsHTML;
         }
 
-        window.changeCartQty = function(idx, delta) {
+        window.changeCartQty = function (idx, delta) {
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             if (cart[idx]) {
                 const current = cart[idx].quantity || 1;
@@ -425,7 +457,7 @@
             }
         }
 
-        window.toggleCartItem = function(idx) {
+        window.toggleCartItem = function (idx) {
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             if (cart[idx]) {
                 cart[idx].enabled = cart[idx].enabled === false ? true : false;
@@ -435,7 +467,7 @@
             }
         }
 
-        window.removeCartItem = function(idx) {
+        window.removeCartItem = function (idx) {
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             cart.splice(idx, 1);
             localStorage.setItem('cart', JSON.stringify(cart));
@@ -444,7 +476,7 @@
             if (window.updateCartBadge) window.updateCartBadge();
         }
 
-        window.openCheckout = function() {
+        window.openCheckout = function () {
             document.getElementById('checkout-modal').style.display = 'flex';
         }
 
@@ -472,16 +504,16 @@
             // Assuming user is authenticated to place order, which we enforce in app.js detail-cart-btn
             // But we can just use the auth info from window if available, or just save the order
             // Here we assume currentUser might be loaded via app.js
-            
+
             try {
                 await addDoc(collection(db, "orders"), orderData);
                 alert("Order placed successfully!");
-                
+
                 // Remove enabled items from cart
                 const remainingItems = cart.filter(item => item.enabled === false);
                 localStorage.setItem('cart', JSON.stringify(remainingItems));
                 if (window.syncCartToCloud) window.syncCartToCloud();
-                
+
                 document.getElementById('checkout-modal').style.display = 'none';
                 e.target.reset();
                 window.renderCart();
@@ -489,7 +521,7 @@
             } catch (error) {
                 alert("Error placing order: " + error.message);
             }
-            
+
             btn.disabled = false;
             btn.textContent = 'Place Order';
         });
