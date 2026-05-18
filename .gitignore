@@ -1,2 +1,25 @@
+# Google Drive temp files
 .tmp.driveupload/
 .tmp.drivedownload/
+
+# Vercel
+.vercel
+
+# Variables de entorno locales (NUNCA subir al repo)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Node modules
+node_modules/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

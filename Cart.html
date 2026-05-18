@@ -203,6 +203,7 @@
                 font-size: 28px;
             }
         }
+
     </style>
 </head>
 
@@ -330,38 +331,6 @@
         </div>
     </section>
 
-    <!-- Checkout Modal -->
-    <div id="checkout-modal"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px);">
-        <div
-            style="background: #0d0d0d; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 500px; padding: 40px; position: relative;">
-            <button onclick="document.getElementById('checkout-modal').style.display='none'"
-                style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; cursor: pointer;">&times;</button>
-            <h2 style="margin-bottom: 25px;">Checkout</h2>
-            <form id="checkout-form">
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">Full Name</label>
-                    <input type="text" id="chk-name" required
-                        style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">Shipping
-                        Address</label>
-                    <input type="text" id="chk-address" required
-                        style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
-                </div>
-                <div style="margin-bottom: 25px;">
-                    <label style="display:block; margin-bottom:5px; color:#8f8f8f; font-size:14px;">City / State /
-                        ZIP</label>
-                    <input type="text" id="chk-city" required
-                        style="width:100%; padding:10px; background:#1a1a1a; border:1px solid #333; color:white; border-radius:8px;">
-                </div>
-                <button type="submit" id="chk-submit"
-                    style="width: 100%; padding: 15px; background: white; color: black; font-weight: bold; border-radius: 30px; font-size: 16px; border: none; cursor: pointer; transition: .3s;">Place
-                    Order</button>
-            </form>
-        </div>
-    </div>
 
     <footer>
         <div class="footer-content">
@@ -373,8 +342,8 @@
                         class="fab fa-instagram"></i></a>
                 <a href="https://www.tiktok.com/@the_vault_us_" target="_blank" rel="noopener noreferrer"><i
                         class="fab fa-tiktok"></i></a>
-                <a href="https://www.facebook.com/people/The-Vault/61589709900519/" target="_blank" rel="noopener noreferrer"><i
-                        class="fab fa-facebook"></i></a>
+                <a href="https://www.facebook.com/people/The-Vault/61589709900519/" target="_blank"
+                    rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
             </div>
         </div>
         <p class="copyright">&copy; 2026 The vault. All rights reserved.</p>
@@ -385,9 +354,22 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
         window.renderCart = function () {
             const container = document.getElementById('cart-container');
+
+            // If user is not logged in, show login required message
+            if (!auth.currentUser) {
+                container.innerHTML = `
+                    <div class="cart-empty">
+                        <i class="fas fa-lock"></i>
+                        <p>You must be logged in to view your cart.</p>
+                        <a href="login.html">Log In</a>
+                    </div>`;
+                return;
+            }
+
             let cart = [];
             try { cart = JSON.parse(localStorage.getItem('cart')) || []; } catch (e) { }
 
@@ -477,57 +459,153 @@
         }
 
         window.openCheckout = function () {
-            document.getElementById('checkout-modal').style.display = 'flex';
+            document.getElementById('shipping-modal').style.display = 'flex';
         }
 
-        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('chk-submit');
-            btn.disabled = true;
-            btn.textContent = 'Processing...';
+        window.renderCart();
 
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const enabledItems = cart.filter(item => item.enabled !== false);
-            const total = enabledItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
+        // ----------------------------------------------------
+        // STRIPE IMPLEMENTATION (VERCEL SERVERLESS)
+        // ----------------------------------------------------
 
-            const orderData = {
-                userId: auth.currentUser ? auth.currentUser.uid : 'anonymous',
-                name: document.getElementById('chk-name').value,
-                address: document.getElementById('chk-address').value,
-                city: document.getElementById('chk-city').value,
-                items: enabledItems,
-                total: total,
-                date: new Date().toISOString(),
-                status: 'Pending'
-            };
+        // Check if returning from a successful or canceled payment
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            // Wait for Firebase auth to be ready before saving the order
+            const unsubscribe = onAuthStateChanged(auth, async (user) => {
+                unsubscribe(); // Only run once
 
-            // Assuming user is authenticated to place order, which we enforce in app.js detail-cart-btn
-            // But we can just use the auth info from window if available, or just save the order
-            // Here we assume currentUser might be loaded via app.js
+                let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                const purchasedItems = cart.filter(item => item.enabled !== false);
+                const total = purchasedItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
 
-            try {
-                await addDoc(collection(db, "orders"), orderData);
-                alert("Order placed successfully!");
+                // Recover shipping info saved before Stripe redirect
+                let shippingInfo = {};
+                try { shippingInfo = JSON.parse(localStorage.getItem('pendingShipping')) || {}; } catch (e) {}
 
-                // Remove enabled items from cart
+                // Save order to Firestore so it appears in My Orders
+                try {
+                    const orderData = {
+                        userId: user ? user.uid : 'anonymous',
+                        name: shippingInfo.name || (user ? (user.displayName || user.email) : 'Guest'),
+                        email: shippingInfo.email || (user ? user.email : ''),
+                        address: shippingInfo.address || '',
+                        items: purchasedItems,
+                        total: total,
+                        date: new Date().toISOString(),
+                        status: 'Paid',
+                    };
+                    await addDoc(collection(db, "orders"), orderData);
+                    localStorage.removeItem('pendingShipping');
+                } catch (err) {
+                    console.error("Error saving order to Firestore:", err);
+                }
+
+                // Remove purchased items from cart, keep disabled ones
                 const remainingItems = cart.filter(item => item.enabled === false);
                 localStorage.setItem('cart', JSON.stringify(remainingItems));
                 if (window.syncCartToCloud) window.syncCartToCloud();
-
-                document.getElementById('checkout-modal').style.display = 'none';
-                e.target.reset();
-                window.renderCart();
                 if (window.updateCartBadge) window.updateCartBadge();
-            } catch (error) {
-                alert("Error placing order: " + error.message);
+
+                // Redirect to Orders page
+                window.location.href = 'Orders.html';
+            });
+        } else if (urlParams.get('canceled') === 'true') {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            alert("Payment was canceled. You can try again when you are ready.");
+        }
+
+        window.openCheckout = function () {
+            // Require login before checkout
+            if (!auth.currentUser) {
+                alert('⚠️ You must be logged in to checkout.\nYou will be redirected to the login page.');
+                window.location.href = 'login.html';
+                return;
+            }
+            // Pre-fill email from Firebase Auth
+            const emailField = document.getElementById('shipping-email');
+            if (emailField && auth.currentUser.email) emailField.value = auth.currentUser.email;
+            document.getElementById('shipping-modal').style.display = 'flex';
+        }
+
+        window.proceedToStripe = async function () {
+            const name    = document.getElementById('shipping-name').value.trim();
+            const email   = document.getElementById('shipping-email').value.trim();
+            const address = document.getElementById('shipping-address').value.trim();
+
+            if (!name || !email || !address) {
+                alert('Please fill in all shipping fields.');
+                return;
             }
 
-            btn.disabled = false;
-            btn.textContent = 'Place Order';
-        });
+            // Save shipping info to localStorage before leaving the page
+            localStorage.setItem('pendingShipping', JSON.stringify({ name, email, address }));
 
-        window.renderCart();
+            document.getElementById('shipping-modal').style.display = 'none';
+
+            const btn = document.getElementById('stripe-btn');
+            btn.disabled = true;
+            btn.textContent = 'Redirecting to Stripe...';
+
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const enabledItems = cart.filter(item => item.enabled !== false);
+
+            if (enabledItems.length === 0) {
+                alert('No items selected for checkout.');
+                btn.disabled = false;
+                btn.textContent = 'Proceed to Payment';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: enabledItems })
+                });
+                const session = await response.json();
+                if (session.url) {
+                    window.location.href = session.url;
+                } else {
+                    throw new Error(session.error || 'Failed to create session');
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Error: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Proceed to Payment';
+            }
+        }
     </script>
+
+    <!-- Shipping Info Modal -->
+    <div id="shipping-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:5000; justify-content:center; align-items:center; backdrop-filter:blur(8px);">
+        <div style="background:#0d0d0d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:40px; width:100%; max-width:460px; position:relative;">
+            <button onclick="document.getElementById('shipping-modal').style.display='none'" style="position:absolute;top:15px;right:20px;background:none;border:none;color:white;font-size:24px;cursor:pointer;">×</button>
+            <h2 style="margin-bottom:8px; font-size:22px;">Shipping Information</h2>
+            <p style="color:#8f8f8f; font-size:13px; margin-bottom:25px;">Enter your details before proceeding to payment.</p>
+
+            <div style="margin-bottom:15px;">
+                <label style="display:block;margin-bottom:6px;color:#8f8f8f;font-size:13px;">Full Name</label>
+                <input id="shipping-name" type="text" placeholder="John Doe"
+                    style="width:100%;padding:11px 14px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:10px;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block;margin-bottom:6px;color:#8f8f8f;font-size:13px;">Email</label>
+                <input id="shipping-email" type="email" placeholder="you@email.com"
+                    style="width:100%;padding:11px 14px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:10px;font-size:14px;box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:28px;">
+                <label style="display:block;margin-bottom:6px;color:#8f8f8f;font-size:13px;">Shipping Address</label>
+                <textarea id="shipping-address" rows="3" placeholder="123 Main St, City, State, ZIP"
+                    style="width:100%;padding:11px 14px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:10px;font-size:14px;resize:none;box-sizing:border-box;"></textarea>
+            </div>
+            <button id="stripe-btn" onclick="window.proceedToStripe()"
+                style="width:100%;padding:14px;background:white;color:black;font-weight:bold;font-size:15px;border:none;border-radius:30px;cursor:pointer;transition:.3s;">
+                Proceed to Payment
+            </button>
+        </div>
+    </div>
 
 </body>
 

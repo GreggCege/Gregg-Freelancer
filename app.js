@@ -70,11 +70,11 @@ if (searchInput) {
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         const cards = document.querySelectorAll('.product-card');
-        
+
         cards.forEach(card => {
             const title = card.querySelector('.product-title')?.textContent.toLowerCase() || '';
             const desc = card.querySelector('.product-description')?.textContent.toLowerCase() || '';
-            
+
             if (title.includes(searchTerm) || desc.includes(searchTerm)) {
                 card.style.display = 'block';
             } else {
@@ -162,7 +162,7 @@ window.syncCartToCloud = async () => {
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
     try {
         await updateDoc(doc(db, "users", currentUser.uid), { cart: cart });
-    } catch(e) { console.error("Error syncing cart", e); }
+    } catch (e) { console.error("Error syncing cart", e); }
 };
 
 window.syncFavsToCloud = async () => {
@@ -170,7 +170,7 @@ window.syncFavsToCloud = async () => {
     const favs = JSON.parse(localStorage.getItem('favorites')) || [];
     try {
         await updateDoc(doc(db, "users", currentUser.uid), { favorites: favs });
-    } catch(e) { console.error("Error syncing favs", e); }
+    } catch (e) { console.error("Error syncing favs", e); }
 };
 
 // ─── Actualizar barra superior ────────────────────────────────────────────────
@@ -201,7 +201,7 @@ function updateHeader(username) {
 
     // Nuevo requerimiento: Ocultar barra de búsqueda, productos y menú a usuarios normales
     const isAdmin = currentUserRole === 'admin';
-    
+
     const searchInput = document.getElementById('search-input');
     if (searchInput && searchInput.parentElement && searchInput.parentElement.parentElement) {
         searchInput.parentElement.parentElement.style.visibility = isAdmin ? 'visible' : 'hidden';
@@ -216,7 +216,7 @@ function updateHeader(username) {
     if (cartSection) {
         cartSection.style.display = isAdmin ? 'block' : 'none';
     }
-    
+
     const logo = document.querySelector('.logo');
     if (logo) {
         logo.style.pointerEvents = isAdmin ? 'auto' : 'none';
@@ -350,7 +350,7 @@ function renderProduct(product, container = catalogGrid) {
     try {
         const favs = JSON.parse(localStorage.getItem('favorites')) || [];
         isFav = favs.includes(product.id);
-    } catch(e) {}
+    } catch (e) { }
 
     let cardHTML = `
         <div class="product-image">
@@ -390,7 +390,6 @@ function renderProduct(product, container = catalogGrid) {
     const favBtn = card.querySelector('.fav-btn');
     favBtn.addEventListener('click', (e) => {
         if (!currentUser) {
-            alert('Please log in to add favorites.');
             window.location.href = 'login.html';
             return;
         }
@@ -445,7 +444,7 @@ function openProductDetail(product) {
     const sizesContainer = document.getElementById('detail-sizes-container');
     const sizesOptions = document.getElementById('detail-sizes-options');
     window.selectedSize = null;
-    
+
     if (sizesContainer && sizesOptions) {
         let sizesArray = [];
         if (Array.isArray(product.sizes)) {
@@ -485,7 +484,7 @@ function openProductDetail(product) {
     try {
         const favs = JSON.parse(localStorage.getItem('favorites')) || [];
         isFav = favs.includes(product.id);
-    } catch(e) {}
+    } catch (e) { }
 
     let isInCart = false;
     let currentQty = 1;
@@ -494,13 +493,13 @@ function openProductDetail(product) {
         const found = cart.find(item => item.id === product.id);
         isInCart = !!found;
         if (found) currentQty = found.quantity || 1;
-    } catch(e) {}
+    } catch (e) { }
 
     window.updateCartButtonState = (pid, size) => {
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
         const cartItemId = pid + (size ? '-' + size : '');
         const found = cart.find(item => (item.cartItemId || item.id) === cartItemId);
-        
+
         const cartBtn = document.getElementById('detail-cart-btn');
         if (cartBtn) {
             if (found) {
@@ -513,7 +512,7 @@ function openProductDetail(product) {
                 cartBtn.style.color = 'black';
             }
         }
-        
+
         const qtyEl = document.getElementById('detail-qty');
         if (qtyEl && found) {
             qtyEl.textContent = found.quantity || 1;
@@ -535,7 +534,6 @@ function openProductDetail(product) {
 
     document.getElementById('detail-fav-btn').addEventListener('click', () => {
         if (!currentUser) {
-            alert('Please log in to add favorites.');
             window.location.href = 'login.html';
             return;
         }
@@ -548,7 +546,7 @@ function openProductDetail(product) {
         localStorage.setItem('favorites', JSON.stringify(favs));
         if (window.syncFavsToCloud) window.syncFavsToCloud();
         openProductDetail(product);
-        if(window.loadProducts) loadProducts();
+        if (window.loadProducts) loadProducts();
     });
 
     // Expose quantity changer globally
@@ -572,7 +570,6 @@ function openProductDetail(product) {
 
     document.getElementById('detail-cart-btn').addEventListener('click', () => {
         if (!currentUser) {
-            alert('Please log in to add items to cart.');
             window.location.href = 'login.html';
             return;
         }
@@ -591,7 +588,7 @@ function openProductDetail(product) {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         const cartItemId = product.id + (window.selectedSize ? '-' + window.selectedSize : '');
         const alreadyIn = cart.some(item => (item.cartItemId || item.id) === cartItemId);
-        
+
         if (alreadyIn) {
             window.location.href = 'Cart.html';
         } else {
@@ -609,7 +606,7 @@ function openProductDetail(product) {
             });
             localStorage.setItem('cart', JSON.stringify(cart));
             if (window.syncCartToCloud) window.syncCartToCloud();
-            
+
             window.updateCartButtonState(product.id, window.selectedSize);
             if (window.updateCartBadge) window.updateCartBadge();
         }
@@ -617,7 +614,7 @@ function openProductDetail(product) {
 
     const recommendationsGrid = document.getElementById('detail-recommendations');
     recommendationsGrid.innerHTML = '';
-    
+
     // Find recommendations
     let recs = window.allLoadedProducts.filter(p => p.category === product.category && p.id !== product.id);
     if (recs.length === 0) {
@@ -672,6 +669,70 @@ function openModal(product = null) {
         `;
     }
 
+    // Inject the Cloudinary image upload UI once
+    const imgContainer = document.getElementById('prod-image')?.parentElement;
+    if (imgContainer && !document.getElementById('img-upload-injected')) {
+        imgContainer.innerHTML = `
+            <label style="display:block;margin-bottom:5px;color:#8f8f8f;font-size:14px;">Image (Upload or URL)</label>
+            <div id="img-upload-injected" style="display:flex;flex-direction:column;gap:10px;">
+                <input type="file" id="prod-image-file" accept="image/*"
+                    style="width:100%;padding:8px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:8px;">
+                <div style="text-align:center;color:#8f8f8f;font-size:12px;">OR</div>
+                <input type="url" id="prod-image" placeholder="Image URL" required
+                    style="width:100%;padding:10px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:8px;">
+                <img id="img-preview" style="max-width:100%;max-height:200px;border-radius:8px;display:none;margin-top:10px;object-fit:cover;" />
+            </div>
+        `;
+
+        document.getElementById('prod-image').addEventListener('input', (e) => {
+            const preview = document.getElementById('img-preview');
+            if (e.target.value) {
+                preview.src = e.target.value;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        document.getElementById('prod-image-file').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const btn = document.querySelector('#product-form button[type="submit"]');
+            if (!btn) return;
+            const originalBtnText = btn.textContent;
+            btn.textContent = 'Uploading...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            // IMPORTANTE: Reemplazar 'tu_upload_preset' y 'tu_cloud_name' con los valores reales de Cloudinary
+            formData.append('upload_preset', 'kff1ziju');
+            const cloudName = 'dfwmtfbtl';
+
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.secure_url) {
+                    document.getElementById('prod-image').value = data.secure_url;
+                    document.getElementById('img-preview').src = data.secure_url;
+                    document.getElementById('img-preview').style.display = 'block';
+                } else {
+                    alert('Upload failed: ' + (data.error?.message || 'Check Cloudinary settings.'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error uploading image.');
+            } finally {
+                btn.textContent = originalBtnText;
+                btn.disabled = false;
+            }
+        });
+    }
+
     // Inject the interactive sizes UI once
     const sizesContainer = document.getElementById('prod-sizes')?.parentElement;
     if (sizesContainer && !document.getElementById('sizes-ui-injected')) {
@@ -687,9 +748,9 @@ function openModal(product = null) {
                 <input type="hidden" id="prod-sizes" value="">
             </div>
         `;
-        
+
         window.adminSizes = [];
-        
+
         window.renderAdminSizes = () => {
             const list = document.getElementById('sizes-chip-list');
             list.innerHTML = '';
@@ -739,7 +800,7 @@ function openModal(product = null) {
         if (preview) { preview.src = product.imageUrl; preview.style.display = 'block'; }
         const stockInput = document.getElementById('prod-stock');
         if (stockInput) stockInput.value = product.stock !== undefined ? product.stock : 1;
-        
+
         window.adminSizes = [];
         if (product.sizes) {
             if (Array.isArray(product.sizes)) {
@@ -758,6 +819,8 @@ function openModal(product = null) {
         document.getElementById('prod-id').value = '';
         window.adminSizes = [];
         if (window.renderAdminSizes) window.renderAdminSizes();
+        const preview = document.getElementById('img-preview');
+        if (preview) { preview.style.display = 'none'; preview.src = ''; }
     }
 
     // Inyectar checkbox de Featured si no existe ya
@@ -776,7 +839,7 @@ function openModal(product = null) {
         const btnRow = productForm.querySelector('div[style*="flex-end"]');
         if (btnRow) productForm.insertBefore(featuredDiv, btnRow);
     }
-    
+
     // Si es edición, marcar/desmarcar
     const featuredCheck = document.getElementById('prod-featured');
     if (featuredCheck && isEdit) featuredCheck.checked = product.featured === true;

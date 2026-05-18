@@ -128,7 +128,7 @@
         </div>
     </div>
 
-    <section class="catalog-section" id="catalog">
+    <section class="catalog-section" id="orders-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px;">
             <h2 class="section-title" style="margin-bottom: 0;">
                 My Orders
@@ -197,11 +197,11 @@
                     let html = '';
                     orders.forEach(order => {
                         const date = new Date(order.date).toLocaleDateString();
-                        const statusColor = order.status === 'Pending' ? '#f39c12' : (order.status === 'Shipped' ? '#3498db' : '#2ecc71');
+                        const statusColor = order.status === 'Pending' ? '#f39c12' : order.status === 'Paid' ? '#2ecc71' : (order.status === 'Shipped' ? '#3498db' : '#2ecc71');
 
                         html += `
                         <div style="background: #0d0d0d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; margin-bottom: 20px;">
-                            <div style="background: #1a1a1a; padding: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div style="background: #1a1a1a; padding: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.05);">
                                 <div>
                                     <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">ORDER PLACED</div>
                                     <div style="font-weight: bold;">${date}</div>
@@ -211,12 +211,17 @@
                                     <div style="font-weight: bold;">$${parseFloat(order.total).toFixed(2)}</div>
                                 </div>
                                 <div>
+                                    <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">CUSTOMER</div>
+                                    <div style="font-weight: bold;">${order.name || '—'}</div>
+                                    <div style="font-size: 12px; color: #8f8f8f; margin-top: 3px;">${order.email || ''}</div>
+                                </div>
+                                <div>
                                     <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">SHIP TO</div>
-                                    <div style="font-weight: bold;">${order.name}</div>
+                                    <div style="font-size: 13px; max-width: 180px; line-height: 1.5;">${order.address || '—'}</div>
                                 </div>
                                 <div style="text-align: right;">
                                     <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">ORDER ID # ${order.id}</div>
-                                    <div style="font-weight: bold; color: ${statusColor};">● ${order.status || 'Pending'}</div>
+                                    <div style="font-weight: bold; color: ${statusColor};">● ${order.status || 'Paid'}</div>
                                 </div>
                             </div>
                             <div style="padding: 20px;">
