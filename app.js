@@ -29,8 +29,9 @@ const detailModalHTML = `
     <div style="background: #0d0d0d; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); width: 100%; max-width: 1000px; max-height: 90vh; overflow-y: auto; position: relative; padding: 40px; scrollbar-width: thin;">
         <button onclick="document.getElementById('product-detail-modal').style.display='none'" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; cursor: pointer;">&times;</button>
         <div style="display: flex; flex-wrap: wrap; gap: 40px;">
-            <div style="flex: 1; min-width: 300px;">
+            <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px;">
                 <img id="detail-image" src="" alt="" style="width: 100%; max-height: 500px; border-radius: 12px; object-fit: cover;">
+                <div id="detail-image-gallery"></div>
             </div>
             <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
                 <div id="detail-category" class="product-category" style="font-size: 14px;"></div>
@@ -431,6 +432,38 @@ function openProductDetail(product) {
     document.getElementById('detail-price').textContent = `$${product.price}`;
     document.getElementById('detail-description').textContent = product.description;
 
+    // Render the gallery
+    const galleryContainer = document.getElementById('detail-image-gallery');
+    if (galleryContainer) {
+        galleryContainer.innerHTML = '';
+        const urls = product.imageUrls && product.imageUrls.length > 0 
+            ? product.imageUrls 
+            : (product.imageUrl ? [product.imageUrl] : []);
+        
+        if (urls.length > 1) {
+            urls.forEach((url, idx) => {
+                const img = document.createElement('img');
+                img.src = url;
+                if (idx === 0) {
+                    img.className = 'active';
+                }
+                
+                img.addEventListener('click', () => {
+                    document.getElementById('detail-image').src = url;
+                    Array.from(galleryContainer.children).forEach(child => {
+                        child.classList.remove('active');
+                    });
+                    img.className = 'active';
+                });
+                
+                galleryContainer.appendChild(img);
+            });
+            galleryContainer.style.display = 'flex';
+        } else {
+            galleryContainer.style.display = 'none';
+        }
+    }
+
     const stockEl = document.getElementById('detail-stock');
     if (stockEl) {
         if (product.stock !== undefined && product.stock !== null) {
@@ -673,24 +706,80 @@ function openModal(product = null) {
     const imgContainer = document.getElementById('prod-image')?.parentElement;
     if (imgContainer && !document.getElementById('img-upload-injected')) {
         imgContainer.innerHTML = `
-            <label style="display:block;margin-bottom:5px;color:#8f8f8f;font-size:14px;">Image (Upload or URL)</label>
+            <label style="display:block;margin-bottom:5px;color:#8f8f8f;font-size:14px;">Images (Upload or URL)</label>
             <div id="img-upload-injected" style="display:flex;flex-direction:column;gap:10px;">
                 <input type="file" id="prod-image-file" accept="image/*"
                     style="width:100%;padding:8px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:8px;">
                 <div style="text-align:center;color:#8f8f8f;font-size:12px;">OR</div>
-                <input type="url" id="prod-image" placeholder="Image URL" required
-                    style="width:100%;padding:10px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:8px;">
-                <img id="img-preview" style="max-width:100%;max-height:200px;border-radius:8px;display:none;margin-top:10px;object-fit:cover;" />
+                <div style="display:flex;gap:10px;">
+                    <input type="url" id="prod-image-url-input" placeholder="Paste Image URL"
+                        style="flex:1;padding:10px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:8px;">
+                    <button type="button" id="add-image-btn" style="padding:10px 20px;background:white;color:black;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">Add</button>
+                </div>
+                <div id="images-thumbnail-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;"></div>
+                <input type="hidden" id="prod-image" required value="">
             </div>
         `;
 
-        document.getElementById('prod-image').addEventListener('input', (e) => {
-            const preview = document.getElementById('img-preview');
-            if (e.target.value) {
-                preview.src = e.target.value;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
+        window.adminImagesList = [];
+
+        window.renderAdminImages = () => {
+            const list = document.getElementById('images-thumbnail-list');
+            if (!list) return;
+            list.innerHTML = '';
+            
+            window.adminImagesList.forEach((url, idx) => {
+                const isPrimary = idx === 0;
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:${isPrimary ? '2px solid white' : '1px solid #333'};background:#111;cursor:pointer;`;
+                
+                wrapper.innerHTML = `
+                    <img src="${url}" style="width:100%;height:100%;object-fit:cover;" title="Click to make primary">
+                    <div style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);color:#ff4d4d;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:bold;" onclick="event.stopPropagation(); window.removeAdminImage(${idx})">&times;</div>
+                    ${isPrimary ? '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,0.9);color:black;font-size:9px;text-align:center;font-weight:bold;padding:1px 0;">Primary</div>' : ''}
+                `;
+                
+                wrapper.addEventListener('click', () => {
+                    window.makePrimaryAdminImage(idx);
+                });
+                
+                list.appendChild(wrapper);
+            });
+            
+            // Sync with hidden prod-image input for HTML5 form validation
+            const prodImageInput = document.getElementById('prod-image');
+            if (prodImageInput) {
+                prodImageInput.value = window.adminImagesList[0] || '';
+            }
+        };
+
+        window.removeAdminImage = (idx) => {
+            window.adminImagesList.splice(idx, 1);
+            window.renderAdminImages();
+        };
+
+        window.makePrimaryAdminImage = (idx) => {
+            if (idx === 0) return;
+            const img = window.adminImagesList.splice(idx, 1)[0];
+            window.adminImagesList.unshift(img);
+            window.renderAdminImages();
+        };
+
+        const addImageUrl = () => {
+            const input = document.getElementById('prod-image-url-input');
+            const val = input.value.trim();
+            if (val) {
+                window.adminImagesList.push(val);
+                window.renderAdminImages();
+                input.value = '';
+            }
+        };
+
+        document.getElementById('add-image-btn').addEventListener('click', addImageUrl);
+        document.getElementById('prod-image-url-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addImageUrl();
             }
         });
 
@@ -706,7 +795,6 @@ function openModal(product = null) {
 
             const formData = new FormData();
             formData.append('file', file);
-            // IMPORTANTE: Reemplazar 'tu_upload_preset' y 'tu_cloud_name' con los valores reales de Cloudinary
             formData.append('upload_preset', 'kff1ziju');
             const cloudName = 'dfwmtfbtl';
 
@@ -717,9 +805,8 @@ function openModal(product = null) {
                 });
                 const data = await res.json();
                 if (data.secure_url) {
-                    document.getElementById('prod-image').value = data.secure_url;
-                    document.getElementById('img-preview').src = data.secure_url;
-                    document.getElementById('img-preview').style.display = 'block';
+                    window.adminImagesList.push(data.secure_url);
+                    window.renderAdminImages();
                 } else {
                     alert('Upload failed: ' + (data.error?.message || 'Check Cloudinary settings.'));
                 }
@@ -729,6 +816,7 @@ function openModal(product = null) {
             } finally {
                 btn.textContent = originalBtnText;
                 btn.disabled = false;
+                e.target.value = '';
             }
         });
     }
@@ -794,10 +882,7 @@ function openModal(product = null) {
         document.getElementById('prod-title').value = product.title;
         document.getElementById('prod-price').value = product.price;
         document.getElementById('prod-desc').value = product.description;
-        document.getElementById('prod-image').value = product.imageUrl;
-        // Show current image preview
-        const preview = document.getElementById('img-preview');
-        if (preview) { preview.src = product.imageUrl; preview.style.display = 'block'; }
+        
         const stockInput = document.getElementById('prod-stock');
         if (stockInput) stockInput.value = product.stock !== undefined ? product.stock : 1;
 
@@ -811,6 +896,14 @@ function openModal(product = null) {
         }
         if (window.renderAdminSizes) window.renderAdminSizes();
 
+        window.adminImagesList = [];
+        if (product.imageUrls) {
+            window.adminImagesList = [...product.imageUrls];
+        } else if (product.imageUrl) {
+            window.adminImagesList = [product.imageUrl];
+        }
+        if (window.renderAdminImages) window.renderAdminImages();
+
         // Marcar el checkbox si ya es featured
         const featuredCheck = document.getElementById('prod-featured');
         if (featuredCheck) featuredCheck.checked = product.featured === true;
@@ -819,8 +912,8 @@ function openModal(product = null) {
         document.getElementById('prod-id').value = '';
         window.adminSizes = [];
         if (window.renderAdminSizes) window.renderAdminSizes();
-        const preview = document.getElementById('img-preview');
-        if (preview) { preview.style.display = 'none'; preview.src = ''; }
+        window.adminImagesList = [];
+        if (window.renderAdminImages) window.renderAdminImages();
     }
 
     // Inyectar checkbox de Featured si no existe ya
@@ -855,12 +948,14 @@ async function handleProductSubmit(e) {
     const stockEl = document.getElementById('prod-stock');
     const sizesEl = document.getElementById('prod-sizes');
     const id = document.getElementById('prod-id').value;
+    const imageUrls = window.adminImagesList || [];
     const productData = {
         title: document.getElementById('prod-title').value,
         category: document.getElementById('prod-category').value.toUpperCase(),
         price: parseFloat(document.getElementById('prod-price').value),
         description: document.getElementById('prod-desc').value,
-        imageUrl: document.getElementById('prod-image').value,
+        imageUrl: imageUrls[0] || '',
+        imageUrls: imageUrls,
         featured: featuredEl ? featuredEl.checked : false,
         stock: stockEl ? parseInt(stockEl.value) : 1,
         sizes: sizesEl ? sizesEl.value.trim() : ''

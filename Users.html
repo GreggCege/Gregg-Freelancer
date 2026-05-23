@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Vault - Users</title>
+    <meta name="description" content="Dashboard de administración de usuarios para The Vault.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style2.css">
+    <style>
+        .user-row {
+            background: #0d0d0d;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .user-row.expanded {
+            border-color: rgba(255,255,255,0.22);
+        }
+        .user-row-header {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 22px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+        .user-row-header:hover { background: rgba(255,255,255,0.03); }
+
+        .user-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .user-email {
+            font-size: 13px;
+            color: #a3a3a3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .role-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 11px;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+        .role-badge.admin { background: #ff4d4d; color: white; }
+        .role-badge.user  { background: #333;    color: #ccc; }
+
+        .chevron {
+            color: #555;
+            font-size: 13px;
+            transition: transform 0.25s;
+            flex-shrink: 0;
+        }
+        .user-row.expanded .chevron { transform: rotate(180deg); color: #aaa; }
+
+        /* Orders panel */
+        .orders-panel {
+            display: none;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: #0a0a0a;
+            padding: 20px 22px;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .user-row.expanded .orders-panel { display: flex; }
+
+        .order-card {
+            background: #141414;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 10px;
+            padding: 14px 18px;
+        }
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .order-status {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .order-item-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 8px 0;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+        .order-item-row img {
+            width: 44px;
+            height: 44px;
+            border-radius: 7px;
+            object-fit: cover;
+            background: #222;
+            flex-shrink: 0;
+        }
+
+        /* Search bar */
+        .search-wrapper { position: relative; display: inline-block; width: 100%; max-width: 480px; }
+        .search-wrapper i {
+            position: absolute; left: 17px; top: 50%; transform: translateY(-50%);
+            color: #666; pointer-events: none;
+        }
+        .search-wrapper input {
+            width: 100%; padding: 12px 20px 12px 48px;
+            background: #1a1a1a; border: 1px solid #333; color: white;
+            border-radius: 30px; font-size: 14px; outline: none;
+            transition: border-color 0.25s; font-family: inherit; box-sizing: border-box;
+        }
+        .search-wrapper input:focus { border-color: #555; }
+        .users-stats { font-size: 13px; color: #666; margin-bottom: 20px; }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo" onclick="toggleSidebar()">THE VAULT</div>
+        <div style="flex: 1;"></div>
+        <div id="auth-section" style="display: flex; gap: 15px; align-items: center;">
+            <a href="login.html" style="color:white;text-decoration:none;font-weight:bold;font-size:14px;">Iniciar Sesión</a>
+        </div>
+    </header>
+
+    <div class="sidebar" id="sidebar">
+        <div class="menu-category">
+            <a href="index.html" class="menu-title" style="text-decoration:none;">THE VAULT</a>
+        </div>
+        <div class="menu-category">
+            <p class="Designers">Designers</p>
+        </div>
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">Men <span class="arrow">⌄</span></button>
+            <div class="submenu">
+                <a href="HoodiesMen.html">Hoodies</a>
+                <a href="ShirtsMen.html">Shirts</a>
+                <a href="PantsMen.html">Pants</a>
+                <a href="ShortsMen.html">Shorts</a>
+                <a href="ShoesMen.html">Shoes</a>
+            </div>
+        </div>
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">Women <span class="arrow">⌄</span></button>
+            <div class="submenu">
+                <a href="HoodiesWo.html">Hoodies</a>
+                <a href="ShirtsWo.html">Shirts</a>
+                <a href="PantsWo.html">Pants</a>
+                <a href="ShoesWo.html">Shoes</a>
+            </div>
+        </div>
+        <div class="menu-category">
+            <a href="Accessories.html" class="menu-title">Accessories</a>
+        </div>
+        <div class="menu-category">
+            <button class="menu-title" onclick="toggleCategory(this)">Collectibles <span class="arrow">⌄</span></button>
+            <div class="submenu">
+                <a href="Pokemon.html">Pokemon</a>
+                <div class="menu-category">
+                    <button class="menu-title" onclick="toggleCategory(this)">Sports <span class="arrow">⌄</span></button>
+                    <div class="submenu">
+                        <a href="Baseball.html">Baseball</a>
+                        <a href="Basketball.html">Basketball</a>
+                        <a href="Football.html">Football</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-category">
+            <a href="Favorites.html" class="menu-title" style="text-decoration:none;">My Favorites</a>
+        </div>
+        <div class="menu-category">
+            <a href="Orders.html" class="menu-title" style="text-decoration:none;">My Orders</a>
+        </div>
+        <div class="menu-category">
+            <a href="Cart.html" class="menu-title" style="text-decoration:none;display:flex;align-items:center;">
+                My Cart <span id="cart-badge" class="cart-badge"></span>
+            </a>
+        </div>
+        <div class="menu-category admin-only" style="display:none;">
+            <a href="Inventory.html" class="menu-title" style="text-decoration:none;">Inventory</a>
+        </div>
+        <div class="menu-category admin-only" style="display:none;">
+            <a href="AdminOrders.html" class="menu-title" style="text-decoration:none;">Orders</a>
+        </div>
+        <div class="menu-category admin-only" style="display:none;">
+            <a href="Users.html" class="menu-title" style="text-decoration:none;">Users</a>
+        </div>
+    </div>
+
+    <section class="catalog-section" id="admin-users-section">
+        <!-- Title + filter -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;flex-wrap:wrap;gap:15px;">
+            <h2 class="section-title" style="margin-bottom:0;">Users</h2>
+            <select id="role-filter"
+                style="padding:10px 20px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:30px;cursor:pointer;font-size:14px;outline:none;">
+                <option value="All">All Roles</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+
+        <!-- Search -->
+        <div style="margin-bottom:20px;">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="user-search" placeholder="Search by name or email...">
+            </div>
+        </div>
+
+        <div class="users-stats" id="users-stats"></div>
+
+        <!-- Users list -->
+        <div id="users-container" style="display:flex;flex-direction:column;gap:10px;">
+            <p style="color:#a3a3a3;text-align:center;padding:40px;">Checking credentials...</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">The vault</div>
+            <p style="color:var(--light-gray);margin-bottom:20px;max-width:400px;font-size:0.9rem;">Premium style and quality</p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/the.vault.us/" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.tiktok.com/@the_vault_us_" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.facebook.com/people/The-Vault/61589709900519/" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2026 The vault. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script type="module" src="app.js"></script>
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import {
+            collection, doc, getDoc, getDocs, updateDoc, query, where
+        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+
+        const container  = document.getElementById('users-container');
+        const statsEl    = document.getElementById('users-stats');
+        const filterSel  = document.getElementById('role-filter');
+        const searchInp  = document.getElementById('user-search');
+        let allUsers     = [];
+        let loggedInUser = null;
+
+        // Track which UIDs have their orders panel open & cached orders
+        const expandedUIDs = new Set();
+        const ordersCache  = {};  // uid -> orders array (null = loading)
+
+        // Avatar color palette
+        const COLORS = ['#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#e91e63'];
+        function avatarColor(name) {
+            return COLORS[(name || 'U').charCodeAt(0) % COLORS.length];
+        }
+
+        function statusColor(status) {
+            return status === 'Pending'   ? '#f39c12'
+                 : status === 'Paid'      ? '#2ecc71'
+                 : status === 'Shipped'   ? '#3498db'
+                 : status === 'Delivered' ? '#27ae60'
+                 : '#888';
+        }
+
+        // ── Auth check ──────────────────────────────────────────────────────
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                loggedInUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists() && userDoc.data().role === 'admin') {
+                        loadAllUsers();
+                    } else {
+                        alert("Access denied. Only administrators can view this page.");
+                        window.location.href = "index.html";
+                    }
+                } catch (error) {
+                    console.error("Auth check error:", error);
+                    container.innerHTML = '<p style="color:#ff4d4d;text-align:center;padding:40px;">Error checking permissions.</p>';
+                }
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // ── Load users ──────────────────────────────────────────────────────
+        async function loadAllUsers() {
+            container.innerHTML = '<p style="color:#a3a3a3;text-align:center;padding:40px;">Loading users...</p>';
+            try {
+                const snap = await getDocs(collection(db, "users"));
+                allUsers = [];
+                snap.forEach(d => allUsers.push({ uid: d.id, ...d.data() }));
+                allUsers.sort((a, b) => {
+                    const na = (a.username || a.email || '').toLowerCase();
+                    const nb = (b.username || b.email || '').toLowerCase();
+                    return na.localeCompare(nb);
+                });
+                renderUsers();
+            } catch (error) {
+                container.innerHTML = '<p style="color:#ff4d4d;text-align:center;padding:40px;">Error loading users from Firestore.</p>';
+                console.error("Error loading users:", error);
+            }
+        }
+
+        // ── Render users list ────────────────────────────────────────────────
+        function renderUsers() {
+            const filterVal = filterSel.value;
+            const searchVal = searchInp.value.toLowerCase().trim();
+
+            const filtered = allUsers.filter(u => {
+                const role     = u.role || 'user';
+                const email    = (u.email    || '').toLowerCase();
+                const username = (u.username || '').toLowerCase();
+                return (filterVal === 'All' || role === filterVal) &&
+                       (!searchVal || email.includes(searchVal) || username.includes(searchVal));
+            });
+
+            statsEl.textContent = filtered.length === allUsers.length
+                ? `${allUsers.length} registered user${allUsers.length !== 1 ? 's' : ''}`
+                : `Showing ${filtered.length} of ${allUsers.length} users`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:60px 20px;background:#0d0d0d;border-radius:16px;border:1px solid rgba(255,255,255,0.05);">
+                        <i class="fas fa-users-slash" style="font-size:50px;color:#333;margin-bottom:18px;"></i>
+                        <h3 style="margin-bottom:10px;">No users found</h3>
+                        <p style="color:#a3a3a3;">Try a different search or filter.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(u => {
+                const role        = u.role || 'user';
+                const isSelf      = u.uid === loggedInUser.uid;
+                const displayName = u.username || (u.email ? u.email.split('@')[0] : 'Unknown');
+                const email       = u.email || '—';
+                const initial     = displayName.charAt(0).toUpperCase();
+                const bgColor     = avatarColor(displayName);
+                const isExpanded  = expandedUIDs.has(u.uid);
+
+                return `
+                <div class="user-row ${isExpanded ? 'expanded' : ''}" id="user-row-${u.uid}">
+
+                    <!-- Clickable header -->
+                    <div class="user-row-header" onclick="toggleUserOrders('${u.uid}')">
+                        <div class="user-avatar" style="background:${bgColor};">${initial}</div>
+                        <div class="user-info">
+                            <div class="user-name">
+                                ${displayName}
+                                ${isSelf ? '<span style="font-size:11px;color:#8f8f8f;font-weight:400;margin-left:6px;">(You)</span>' : ''}
+                            </div>
+                            <div class="user-email">
+                                <i class="far fa-envelope" style="margin-right:5px;font-size:11px;"></i>${email}
+                            </div>
+                        </div>
+                        <span class="role-badge ${role}">${role}</span>
+                        <select onchange="updateUserRole('${u.uid}', this.value)" ${isSelf ? 'disabled' : ''}
+                            onclick="event.stopPropagation()"
+                            style="background:#111;color:white;border:1px solid #333;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:${isSelf ? 'not-allowed' : 'pointer'};outline:none;opacity:${isSelf ? '0.4' : '1'};">
+                            <option value="user"  ${role === 'user'  ? 'selected' : ''}>User</option>
+                            <option value="admin" ${role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                        <i class="fas fa-chevron-down chevron"></i>
+                    </div>
+
+                    <!-- Orders panel -->
+                    <div class="orders-panel" id="orders-panel-${u.uid}">
+                        <div id="orders-inner-${u.uid}" style="display:flex;flex-direction:column;gap:12px;">
+                            <p style="color:#a3a3a3;font-size:13px;padding:10px 0;">Loading orders...</p>
+                        </div>
+                    </div>
+
+                </div>`;
+            }).join('');
+
+            // Re-fetch orders for any that were already open (after re-render)
+            expandedUIDs.forEach(uid => {
+                if (ordersCache[uid]) renderOrdersForUser(uid, ordersCache[uid]);
+            });
+        }
+
+        // ── Toggle user orders panel ─────────────────────────────────────────
+        window.toggleUserOrders = async (uid) => {
+            const row = document.getElementById(`user-row-${uid}`);
+            if (!row) return;
+
+            if (expandedUIDs.has(uid)) {
+                // Collapse
+                expandedUIDs.delete(uid);
+                row.classList.remove('expanded');
+            } else {
+                // Expand
+                expandedUIDs.add(uid);
+                row.classList.add('expanded');
+
+                // Load orders if not cached yet
+                if (!ordersCache[uid]) {
+                    await fetchOrdersForUser(uid);
+                } else {
+                    renderOrdersForUser(uid, ordersCache[uid]);
+                }
+            }
+        };
+
+        async function fetchOrdersForUser(uid) {
+            try {
+                const q = query(collection(db, "orders"), where("userId", "==", uid));
+                const snap = await getDocs(q);
+                const orders = [];
+                snap.forEach(d => orders.push({ id: d.id, ...d.data() }));
+                orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+                ordersCache[uid] = orders;
+                renderOrdersForUser(uid, orders);
+            } catch (err) {
+                console.error("Error fetching orders for user:", err);
+                const inner = document.getElementById(`orders-inner-${uid}`);
+                if (inner) inner.innerHTML = '<p style="color:#ff4d4d;font-size:13px;">Error loading orders.</p>';
+            }
+        }
+
+        function renderOrdersForUser(uid, orders) {
+            const inner = document.getElementById(`orders-inner-${uid}`);
+            if (!inner) return;
+
+            if (orders.length === 0) {
+                inner.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:10px;color:#555;font-size:13px;padding:8px 0;">
+                        <i class="fas fa-box-open"></i>
+                        <span>This user has no orders yet.</span>
+                    </div>`;
+                return;
+            }
+
+            inner.innerHTML = `
+                <div style="font-size:12px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
+                    ${orders.length} Order${orders.length !== 1 ? 's' : ''}
+                </div>
+                ${orders.map(order => {
+                    const date   = new Date(order.date).toLocaleDateString();
+                    const sColor = statusColor(order.status);
+                    const total  = parseFloat(order.total || 0).toFixed(2);
+
+                    return `
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <div>
+                                <div style="font-size:11px;color:#666;margin-bottom:3px;">ORDER # ${order.id.slice(0,8)}…</div>
+                                <div style="font-size:13px;color:#a3a3a3;">${date}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-weight:700;color:white;margin-bottom:5px;">$${total}</div>
+                                <span class="order-status" style="background:${sColor}22;color:${sColor};border:1px solid ${sColor}44;">
+                                    ${order.status || 'Paid'}
+                                </span>
+                            </div>
+                        </div>
+                        ${(order.items || []).map(item => `
+                            <div class="order-item-row">
+                                <img src="${item.imageUrl}" onerror="this.src='https://via.placeholder.com/44'">
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:13px;font-weight:600;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.title}</div>
+                                    <div style="font-size:12px;color:#8f8f8f;">Qty: ${item.quantity || 1} &nbsp;·&nbsp; $${parseFloat(item.price).toFixed(2)} each</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>`;
+                }).join('')}`;
+        }
+
+        // ── Update role ──────────────────────────────────────────────────────
+        window.updateUserRole = async (uid, newRole) => {
+            if (confirm(`Change this user's role to "${newRole}"?`)) {
+                try {
+                    await updateDoc(doc(db, "users", uid), { role: newRole });
+                    const idx = allUsers.findIndex(u => u.uid === uid);
+                    if (idx !== -1) allUsers[idx].role = newRole;
+                    renderUsers();
+                } catch (error) {
+                    console.error("Error updating user role:", error);
+                    alert("Error updating role: " + error.message);
+                }
+            } else {
+                renderUsers();
+            }
+        };
+
+        filterSel.addEventListener('change', renderUsers);
+        searchInp.addEventListener('input', renderUsers);
+    </script>
+
+</body>
+</html>

@@ -652,3 +652,56 @@
                 font-size: 11px !important;
             }
         }
+
+        #detail-image-gallery {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scrollbar-width: thin;
+        }
+
+        #detail-image-gallery::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        #detail-image-gallery::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        #detail-image-gallery img {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s, transform 0.2s;
+            flex-shrink: 0;
+        }
+
+
+        #detail-image-gallery img.active {
+            border-color: white;
+        }
+
+        /* Product modal responsiveness and custom scrollbar */
+        #product-modal > div {
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            scrollbar-width: thin;
+        }
+
+        #product-modal > div::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #product-modal > div::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        #product-modal > div::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
