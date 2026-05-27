@@ -363,7 +363,7 @@
     <script type="module" src="app.js"></script>
     <script type="module">
         import { auth, db } from './firebase-config.js';
-        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+        import { collection, addDoc, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
         window.renderCart = function () {
@@ -425,11 +425,36 @@
             itemsHTML += '</div>';
 
             const enabledItems = cart.filter(item => item.enabled !== false);
-            const total = enabledItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
+            const subtotal = enabledItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
             const totalQty = enabledItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            
+            let shippingCost = 0;
+            if (totalQty > 0) {
+                if (subtotal >= 100) {
+                    shippingCost = 0;
+                } else {
+                    let maxCost = 0;
+                    enabledItems.forEach(item => {
+                        const size = (item.shippingSize || 'small').toLowerCase();
+                        let cost = 5;
+                        if (size === 'medium') cost = 10;
+                        else if (size === 'large') cost = 20;
+                        if (cost > maxCost) {
+                            maxCost = cost;
+                        }
+                    });
+                    shippingCost = maxCost;
+                }
+            }
+            
+            const total = subtotal + shippingCost;
+            
             itemsHTML += `
-            <div class="cart-summary">
-                <div class="cart-total-label">TOTAL (${totalQty} item${totalQty !== 1 ? 's' : ''})</div>
+            <div class="cart-summary" style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                <div style="font-size:15px; color:#a3a3a3;">Subtotal: <span style="color:white; font-weight:bold; font-size:18px; margin-left:10px;">$${subtotal.toFixed(2)}</span></div>
+                <div style="font-size:15px; color:#a3a3a3;">Shipping: <span style="color:${shippingCost === 0 && totalQty > 0 ? '#4edf79' : 'white'}; font-weight:bold; font-size:18px; margin-left:10px;">${shippingCost === 0 && totalQty > 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}</span></div>
+                ${subtotal < 100 && totalQty > 0 ? `<div style="font-size:12px; color:#ffb700; margin-bottom:5px;">Spend $${(100 - subtotal).toFixed(2)} more for FREE shipping!</div>` : ''}
+                <div class="cart-total-label" style="margin-top:10px;">TOTAL (${totalQty} item${totalQty !== 1 ? 's' : ''})</div>
                 <div class="cart-total-price" style="margin-bottom: 20px;">$${total.toFixed(2)}</div>
                 <button onclick="window.openCheckout()" style="padding: 15px 40px; background: white; color: black; font-weight: bold; border-radius: 30px; font-size: 16px; border: none; cursor: pointer; transition: .3s; ${totalQty === 0 ? 'opacity:0.5; pointer-events:none;' : ''}">Proceed to Checkout</button>
             </div>`;
@@ -437,10 +462,40 @@
             container.innerHTML = itemsHTML;
         }
 
-        window.changeCartQty = function (idx, delta) {
+        window.changeCartQty = async function (idx, delta) {
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             if (cart[idx]) {
-                const current = cart[idx].quantity || 1;
+                const item = cart[idx];
+                const current = item.quantity || 1;
+                
+                if (delta > 0) {
+                    try {
+                        const productRef = doc(db, "products", item.id);
+                        const productSnap = await getDoc(productRef);
+                        if (productSnap.exists()) {
+                            const productData = productSnap.data();
+                            const stock = productData.stock !== undefined ? parseInt(productData.stock) : 999999;
+                            if (current >= stock) {
+                                alert(`Cannot increase quantity. Only ${stock} items available in stock.`);
+                                return;
+                            }
+                        } else {
+                            const stock = item.stock !== undefined ? parseInt(item.stock) : 999999;
+                            if (current >= stock) {
+                                alert(`Cannot increase quantity. Only ${stock} items available in stock.`);
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Error fetching product stock:", e);
+                        const stock = item.stock !== undefined ? parseInt(item.stock) : 999999;
+                        if (current >= stock) {
+                            alert(`Cannot increase quantity. Only ${stock} items available in stock.`);
+                            return;
+                        }
+                    }
+                }
+                
                 cart[idx].quantity = Math.max(1, current + delta);
                 localStorage.setItem('cart', JSON.stringify(cart));
                 if (window.syncCartToCloud) window.syncCartToCloud();
@@ -487,7 +542,27 @@
 
                 let cart = JSON.parse(localStorage.getItem('cart')) || [];
                 const purchasedItems = cart.filter(item => item.enabled !== false);
-                const total = purchasedItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
+                const subtotal = purchasedItems.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
+                
+                let shippingCost = 0;
+                if (purchasedItems.length > 0) {
+                    if (subtotal >= 100) {
+                        shippingCost = 0;
+                    } else {
+                        let maxCost = 0;
+                        purchasedItems.forEach(item => {
+                            const size = (item.shippingSize || 'small').toLowerCase();
+                            let cost = 5;
+                            if (size === 'medium') cost = 10;
+                            else if (size === 'large') cost = 20;
+                            if (cost > maxCost) {
+                                maxCost = cost;
+                            }
+                        });
+                        shippingCost = maxCost;
+                    }
+                }
+                const total = subtotal + shippingCost;
 
                 // Recover shipping info saved before Stripe redirect
                 let shippingInfo = {};
@@ -501,12 +576,30 @@
                         email: shippingInfo.email || (user ? user.email : ''),
                         address: shippingInfo.address || '',
                         items: purchasedItems,
+                        subtotal: subtotal,
+                        shippingCost: shippingCost,
                         total: total,
                         date: new Date().toISOString(),
                         status: 'Paid',
                     };
                     await addDoc(collection(db, "orders"), orderData);
                     localStorage.removeItem('pendingShipping');
+
+                    // Decrement stock in Firestore for each purchased item!
+                    for (let item of purchasedItems) {
+                        try {
+                            const productRef = doc(db, "products", item.id);
+                            const productSnap = await getDoc(productRef);
+                            if (productSnap.exists()) {
+                                const productData = productSnap.data();
+                                const currentStock = productData.stock !== undefined ? parseInt(productData.stock) : 0;
+                                const newStock = Math.max(0, currentStock - (item.quantity || 1));
+                                await updateDoc(productRef, { stock: newStock });
+                            }
+                        } catch (stockErr) {
+                            console.error("Error updating stock for product:", item.id, stockErr);
+                        }
+                    }
                 } catch (err) {
                     console.error("Error saving order to Firestore:", err);
                 }
@@ -565,6 +658,44 @@
                 btn.disabled = false;
                 btn.textContent = 'Proceed to Payment';
                 return;
+            }
+
+            // Live stock validation before checkout
+            btn.textContent = 'Verifying stock...';
+            for (let item of enabledItems) {
+                try {
+                    const productRef = doc(db, "products", item.id);
+                    const productSnap = await getDoc(productRef);
+                    if (productSnap.exists()) {
+                        const productData = productSnap.data();
+                        const stock = productData.stock !== undefined ? parseInt(productData.stock) : 999999;
+                        if (item.quantity > stock) {
+                            alert(`⚠️ Stock limit exceeded for "${item.title}".\nOnly ${stock} items are available in stock, but you have ${item.quantity} in your cart.\n\nWe have adjusted the quantity in your cart to match the available stock. Please review your cart.`);
+                            
+                            // Adjust quantity in cart and save
+                            let fullCart = JSON.parse(localStorage.getItem('cart')) || [];
+                            const matchIdx = fullCart.findIndex(cItem => cItem.cartItemId === item.cartItemId);
+                            if (matchIdx !== -1) {
+                                if (stock <= 0) {
+                                    fullCart.splice(matchIdx, 1);
+                                } else {
+                                    fullCart[matchIdx].quantity = stock;
+                                }
+                                localStorage.setItem('cart', JSON.stringify(fullCart));
+                                if (window.syncCartToCloud) window.syncCartToCloud();
+                            }
+                            
+                            window.renderCart();
+                            if (window.updateCartBadge) window.updateCartBadge();
+                            
+                            btn.disabled = false;
+                            btn.textContent = 'Proceed to Payment';
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error verifying stock for checkout:", e);
+                }
             }
 
             try {

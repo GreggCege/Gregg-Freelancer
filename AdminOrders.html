@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Vault - Admin Orders</title>
-    <meta name="description"
-        content="Dashboard de administración de pedidos para The Vault.">
+    <meta name="description" content="Dashboard de administración de pedidos para The Vault.">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style2.css">
@@ -139,12 +138,14 @@
     </div>
 
     <section class="catalog-section" id="admin-orders-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px;">
             <h2 class="section-title" style="margin-bottom: 0;">
                 Manage Orders (Admin)
             </h2>
             <div style="display: flex; gap: 15px;">
-                <select id="status-filter" style="padding: 10px 20px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 30px; cursor: pointer; font-size: 14px; outline: none;">
+                <select id="status-filter"
+                    style="padding: 10px 20px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 30px; cursor: pointer; font-size: 14px; outline: none;">
                     <option value="All">All Statuses</option>
                     <option value="Pending">Pending</option>
                     <option value="Paid">Paid</option>
@@ -258,12 +259,12 @@
 
             let html = '';
             filtered.forEach(order => {
-                const date = new Date(order.date).toLocaleDateString() + ' ' + new Date(order.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const date = new Date(order.date).toLocaleDateString() + ' ' + new Date(order.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 const statusColor = order.status === 'Pending' ? '#f39c12'
                     : order.status === 'Paid' ? '#2ecc71'
-                    : order.status === 'Shipped' ? '#3498db'
-                    : order.status === 'Delivered' ? '#27ae60'
-                    : '#2ecc71';
+                        : order.status === 'Shipped' ? '#3498db'
+                            : order.status === 'Delivered' ? '#27ae60'
+                                : '#2ecc71';
 
                 html += `
                 <div style="background: #0d0d0d; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; margin-bottom: 20px;">
@@ -275,6 +276,7 @@
                         <div>
                             <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">TOTAL</div>
                             <div style="font-weight: bold; color: white;">$${parseFloat(order.total).toFixed(2)}</div>
+                            ${order.shippingCost !== undefined ? `<div style="font-size: 11px; color: #8f8f8f; margin-top: 3px;">(incl. $${parseFloat(order.shippingCost).toFixed(2)} shipping)</div>` : ''}
                         </div>
                         <div>
                             <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 5px;">CUSTOMER</div>

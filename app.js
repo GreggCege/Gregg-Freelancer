@@ -436,10 +436,10 @@ function openProductDetail(product) {
     const galleryContainer = document.getElementById('detail-image-gallery');
     if (galleryContainer) {
         galleryContainer.innerHTML = '';
-        const urls = product.imageUrls && product.imageUrls.length > 0 
-            ? product.imageUrls 
+        const urls = product.imageUrls && product.imageUrls.length > 0
+            ? product.imageUrls
             : (product.imageUrl ? [product.imageUrl] : []);
-        
+
         if (urls.length > 1) {
             urls.forEach((url, idx) => {
                 const img = document.createElement('img');
@@ -447,7 +447,7 @@ function openProductDetail(product) {
                 if (idx === 0) {
                     img.className = 'active';
                 }
-                
+
                 img.addEventListener('click', () => {
                     document.getElementById('detail-image').src = url;
                     Array.from(galleryContainer.children).forEach(child => {
@@ -455,7 +455,7 @@ function openProductDetail(product) {
                     });
                     img.className = 'active';
                 });
-                
+
                 galleryContainer.appendChild(img);
             });
             galleryContainer.style.display = 'flex';
@@ -465,10 +465,19 @@ function openProductDetail(product) {
     }
 
     const stockEl = document.getElementById('detail-stock');
+    const stockVal = (product.stock !== undefined && product.stock !== null) ? parseInt(product.stock) : 999999;
     if (stockEl) {
         if (product.stock !== undefined && product.stock !== null) {
             stockEl.style.display = 'block';
-            stockEl.textContent = `Stock: ${product.stock}`;
+            if (stockVal <= 0) {
+                stockEl.textContent = `Out of Stock`;
+                stockEl.style.background = '#ff4d4d';
+                stockEl.style.color = 'white';
+            } else {
+                stockEl.textContent = `Stock: ${stockVal}`;
+                stockEl.style.background = '#222';
+                stockEl.style.color = '#a3a3a3';
+            }
         } else {
             stockEl.style.display = 'none';
         }
@@ -528,6 +537,23 @@ function openProductDetail(product) {
         if (found) currentQty = found.quantity || 1;
     } catch (e) { }
 
+    if (stockVal <= 0) {
+        currentQty = 0;
+    } else if (currentQty > stockVal) {
+        currentQty = stockVal;
+        // Sync modified quantity to localStorage
+        try {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const foundIdx = cart.findIndex(item => item.id === product.id);
+            if (foundIdx !== -1) {
+                cart[foundIdx].quantity = stockVal;
+                localStorage.setItem('cart', JSON.stringify(cart));
+                if (window.syncCartToCloud) window.syncCartToCloud();
+                if (window.updateCartBadge) window.updateCartBadge();
+            }
+        } catch (e) {}
+    }
+
     window.updateCartButtonState = (pid, size) => {
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
         const cartItemId = pid + (size ? '-' + size : '');
@@ -535,22 +561,33 @@ function openProductDetail(product) {
 
         const cartBtn = document.getElementById('detail-cart-btn');
         if (cartBtn) {
-            if (found) {
+            if (stockVal <= 0) {
+                cartBtn.textContent = 'Out of Stock';
+                cartBtn.style.background = '#555';
+                cartBtn.style.color = '#aaa';
+                cartBtn.style.cursor = 'not-allowed';
+            } else if (found) {
                 cartBtn.textContent = '✓ In Cart — View Cart';
                 cartBtn.style.background = '#888';
                 cartBtn.style.color = 'white';
+                cartBtn.style.cursor = 'pointer';
             } else {
                 cartBtn.textContent = 'Add to Cart';
                 cartBtn.style.background = 'white';
                 cartBtn.style.color = 'black';
+                cartBtn.style.cursor = 'pointer';
             }
         }
 
         const qtyEl = document.getElementById('detail-qty');
-        if (qtyEl && found) {
-            qtyEl.textContent = found.quantity || 1;
-        } else if (qtyEl) {
-            qtyEl.textContent = 1;
+        if (qtyEl) {
+            if (stockVal <= 0) {
+                qtyEl.textContent = 0;
+            } else if (found) {
+                qtyEl.textContent = Math.min(found.quantity || 1, stockVal);
+            } else {
+                qtyEl.textContent = 1;
+            }
         }
     };
 
@@ -562,7 +599,7 @@ function openProductDetail(product) {
                 <span id="detail-qty" style="font-size: 18px; font-weight: bold; min-width: 24px; text-align: center;">${currentQty}</span>
                 <button onclick="changeQty(1)" style="background: none; border: none; color: white; font-size: 22px; cursor: pointer; line-height: 1; padding: 0 5px;">+</button>
             </div>
-            <button id="detail-cart-btn" class="product-btn" style="width: 100%; padding: 15px; font-size: 16px; border-radius: 30px; border: none; cursor: pointer; transition: .3s; ${isInCart ? 'background: #888; color: white;' : 'background: white; color: black;'}">${isInCart ? '✓ In Cart — View Cart' : 'Add to Cart'}</button>
+            <button id="detail-cart-btn" class="product-btn" style="width: 100%; padding: 15px; font-size: 16px; border-radius: 30px; border: none; cursor: pointer; transition: .3s; ${stockVal <= 0 ? 'background: #555; color: #aaa; cursor: not-allowed;' : (isInCart ? 'background: #888; color: white;' : 'background: white; color: black;')}">${stockVal <= 0 ? 'Out of Stock' : (isInCart ? '✓ In Cart — View Cart' : 'Add to Cart')}</button>
         </div>`;
 
     document.getElementById('detail-fav-btn').addEventListener('click', () => {
@@ -584,11 +621,19 @@ function openProductDetail(product) {
 
     // Expose quantity changer globally
     window.changeQty = (delta) => {
+        if (stockVal <= 0) return;
         const qtyEl = document.getElementById('detail-qty');
         if (!qtyEl) return;
         let qty = parseInt(qtyEl.textContent) || 1;
+        
+        if (delta > 0 && qty >= stockVal) {
+            alert(`Cannot increase quantity. Only ${stockVal} items available in stock.`);
+            return;
+        }
+        
         qty = Math.max(1, qty + delta);
         qtyEl.textContent = qty;
+        
         // If already in cart, update quantity live
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         const cartItemId = product.id + (window.selectedSize ? '-' + window.selectedSize : '');
@@ -604,6 +649,11 @@ function openProductDetail(product) {
     document.getElementById('detail-cart-btn').addEventListener('click', () => {
         if (!currentUser) {
             window.location.href = 'login.html';
+            return;
+        }
+
+        if (stockVal <= 0) {
+            alert('This item is currently out of stock.');
             return;
         }
 
@@ -626,6 +676,12 @@ function openProductDetail(product) {
             window.location.href = 'Cart.html';
         } else {
             const qty = parseInt(document.getElementById('detail-qty')?.textContent) || 1;
+            
+            if (qty > stockVal) {
+                alert(`Cannot add to cart. Only ${stockVal} items available in stock.`);
+                return;
+            }
+
             cart.push({
                 id: product.id,
                 cartItemId: cartItemId,
@@ -635,7 +691,9 @@ function openProductDetail(product) {
                 category: product.category,
                 enabled: true,
                 quantity: qty,
-                size: window.selectedSize || null
+                size: window.selectedSize || null,
+                stock: stockVal,
+                shippingSize: product.shippingSize || 'small'
             });
             localStorage.setItem('cart', JSON.stringify(cart));
             if (window.syncCartToCloud) window.syncCartToCloud();
@@ -702,6 +760,26 @@ function openModal(product = null) {
         `;
     }
 
+    // Inyectar el campo de Shipping Size si no existe ya
+    if (!document.getElementById('prod-shipping-size')) {
+        const shippingDiv = document.createElement('div');
+        shippingDiv.style.cssText = 'margin-bottom: 15px;';
+        shippingDiv.innerHTML = `
+            <label style="display:block;margin-bottom:5px;color:#8f8f8f;font-size:14px;">Shipping Size</label>
+            <select id="prod-shipping-size" required
+                style="width:100%;padding:10px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:8px;font-size:14px;appearance:none;cursor:pointer;">
+                <option value="small" selected>Small ($5.00 USD)</option>
+                <option value="medium">Medium ($10.00 USD)</option>
+                <option value="large">Large ($20.00 USD)</option>
+            </select>
+        `;
+        if (catContainer && catContainer.nextSibling) {
+            catContainer.parentNode.insertBefore(shippingDiv, catContainer.nextSibling);
+        } else if (catContainer) {
+            catContainer.parentNode.appendChild(shippingDiv);
+        }
+    }
+
     // Inject the Cloudinary image upload UI once
     const imgContainer = document.getElementById('prod-image')?.parentElement;
     if (imgContainer && !document.getElementById('img-upload-injected')) {
@@ -727,25 +805,25 @@ function openModal(product = null) {
             const list = document.getElementById('images-thumbnail-list');
             if (!list) return;
             list.innerHTML = '';
-            
+
             window.adminImagesList.forEach((url, idx) => {
                 const isPrimary = idx === 0;
                 const wrapper = document.createElement('div');
                 wrapper.style.cssText = `position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:${isPrimary ? '2px solid white' : '1px solid #333'};background:#111;cursor:pointer;`;
-                
+
                 wrapper.innerHTML = `
                     <img src="${url}" style="width:100%;height:100%;object-fit:cover;" title="Click to make primary">
                     <div style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.7);color:#ff4d4d;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:bold;" onclick="event.stopPropagation(); window.removeAdminImage(${idx})">&times;</div>
                     ${isPrimary ? '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,0.9);color:black;font-size:9px;text-align:center;font-weight:bold;padding:1px 0;">Primary</div>' : ''}
                 `;
-                
+
                 wrapper.addEventListener('click', () => {
                     window.makePrimaryAdminImage(idx);
                 });
-                
+
                 list.appendChild(wrapper);
             });
-            
+
             // Sync with hidden prod-image input for HTML5 form validation
             const prodImageInput = document.getElementById('prod-image');
             if (prodImageInput) {
@@ -882,9 +960,12 @@ function openModal(product = null) {
         document.getElementById('prod-title').value = product.title;
         document.getElementById('prod-price').value = product.price;
         document.getElementById('prod-desc').value = product.description;
-        
+
         const stockInput = document.getElementById('prod-stock');
         if (stockInput) stockInput.value = product.stock !== undefined ? product.stock : 1;
+
+        const shippingSelect = document.getElementById('prod-shipping-size');
+        if (shippingSelect) shippingSelect.value = product.shippingSize || 'small';
 
         window.adminSizes = [];
         if (product.sizes) {
@@ -910,6 +991,8 @@ function openModal(product = null) {
     } else {
         productForm.reset();
         document.getElementById('prod-id').value = '';
+        const shippingSelect = document.getElementById('prod-shipping-size');
+        if (shippingSelect) shippingSelect.value = 'small';
         window.adminSizes = [];
         if (window.renderAdminSizes) window.renderAdminSizes();
         window.adminImagesList = [];
@@ -947,6 +1030,7 @@ async function handleProductSubmit(e) {
     const featuredEl = document.getElementById('prod-featured');
     const stockEl = document.getElementById('prod-stock');
     const sizesEl = document.getElementById('prod-sizes');
+    const shippingEl = document.getElementById('prod-shipping-size');
     const id = document.getElementById('prod-id').value;
     const imageUrls = window.adminImagesList || [];
     const productData = {
@@ -958,7 +1042,8 @@ async function handleProductSubmit(e) {
         imageUrls: imageUrls,
         featured: featuredEl ? featuredEl.checked : false,
         stock: stockEl ? parseInt(stockEl.value) : 1,
-        sizes: sizesEl ? sizesEl.value.trim() : ''
+        sizes: sizesEl ? sizesEl.value.trim() : '',
+        shippingSize: shippingEl ? shippingEl.value : 'small'
     };
 
     try {

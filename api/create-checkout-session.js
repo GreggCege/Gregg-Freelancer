@@ -30,6 +30,24 @@ module.exports = async (req, res) => {
       };
     });
 
+    // Calculate shipping cost on the server side
+    const subtotal = items.reduce((sum, item) => sum + parseFloat(item.price || 0) * (item.quantity || 1), 0);
+    let shippingCost = 0;
+    if (subtotal < 100) {
+      let maxCost = 0;
+      items.forEach(item => {
+        const size = (item.shippingSize || 'small').toLowerCase();
+        let cost = 5;
+        if (size === 'medium') cost = 10;
+        else if (size === 'large') cost = 20;
+        if (cost > maxCost) {
+          maxCost = cost;
+        }
+      });
+      shippingCost = maxCost;
+    }
+    const shippingAmountInCents = Math.round(shippingCost * 100);
+
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -38,6 +56,22 @@ module.exports = async (req, res) => {
       shipping_address_collection: {
         allowed_countries: ['US', 'CA', 'MX', 'GB'],
       },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: {
+              amount: shippingAmountInCents,
+              currency: 'usd',
+            },
+            display_name: shippingCost === 0 ? 'Free Shipping' : 'Standard Shipping',
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 3 },
+              maximum: { unit: 'business_day', value: 7 },
+            }
+          }
+        }
+      ],
       success_url: `${req.headers.origin}/Cart.html?success=true`,
       cancel_url: `${req.headers.origin}/Cart.html?canceled=true`,
     });
