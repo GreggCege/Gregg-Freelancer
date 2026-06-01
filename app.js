@@ -249,8 +249,8 @@ function startCountdown() {
     const countdownEl = document.getElementById('hero-countdown');
     if (!countdownEl) return;
 
-    // June 1st, 2026 at 00:00:00 US Eastern Time (EDT, UTC-4)
-    const targetDate = new Date('2026-06-01T00:00:00-04:00').getTime();
+    // June 1st of current year (2026)
+    const targetDate = new Date('May 31, 2026 23:00:00').getTime();
 
     const updateTimer = () => {
         const now = new Date().getTime();
