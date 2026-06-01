@@ -40,6 +40,7 @@ module.exports = async (req, res) => {
         let cost = 5;
         if (size === 'medium') cost = 10;
         else if (size === 'large') cost = 20;
+        else if (size === 'free') cost = 0;
         if (cost > maxCost) {
           maxCost = cost;
         }

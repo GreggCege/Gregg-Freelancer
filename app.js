@@ -768,7 +768,8 @@ function openModal(product = null) {
             <label style="display:block;margin-bottom:5px;color:#8f8f8f;font-size:14px;">Shipping Size</label>
             <select id="prod-shipping-size" required
                 style="width:100%;padding:10px;background:#1a1a1a;border:1px solid #333;color:white;border-radius:8px;font-size:14px;appearance:none;cursor:pointer;">
-                <option value="small" selected>Small ($5.00 USD)</option>
+                <option value="free" selected>Free Shipping ($0.00 USD)</option>
+                <option value="small">Small ($5.00 USD)</option>
                 <option value="medium">Medium ($10.00 USD)</option>
                 <option value="large">Large ($20.00 USD)</option>
             </select>
@@ -992,7 +993,7 @@ function openModal(product = null) {
         productForm.reset();
         document.getElementById('prod-id').value = '';
         const shippingSelect = document.getElementById('prod-shipping-size');
-        if (shippingSelect) shippingSelect.value = 'small';
+        if (shippingSelect) shippingSelect.value = 'free';
         window.adminSizes = [];
         if (window.renderAdminSizes) window.renderAdminSizes();
         window.adminImagesList = [];
