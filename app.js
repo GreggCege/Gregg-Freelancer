@@ -238,7 +238,15 @@ function updateHeader(username) {
         if (isLogged) {
             heroBtn.style.display = 'none';
             heroCountdown.style.display = 'block';
-            if (!window.countdownInterval) startCountdown();
+            if (isVaultOpen) {
+                heroCountdown.innerHTML = '<span style="font-size: 24px; font-weight: 800; letter-spacing: 2px;">THE VAULT IS OPEN</span>';
+                if (window.countdownInterval) {
+                    clearInterval(window.countdownInterval);
+                    window.countdownInterval = null;
+                }
+            } else {
+                if (!window.countdownInterval) startCountdown();
+            }
         } else {
             heroBtn.style.display = 'inline-block';
             heroCountdown.style.display = 'none';
@@ -296,7 +304,23 @@ function checkPageAccess() {
     const path = window.location.pathname;
     const page = path.split('/').pop().toLowerCase();
 
-    // Páginas permitidas para no-administradores
+    // Páginas de administración que los no-administradores NUNCA pueden ver
+    const adminPages = [
+        'inventory.html',
+        'users.html',
+        'adminorders.html'
+    ];
+
+    if (adminPages.includes(page)) {
+        console.warn("Acceso denegado a página de administración para usuario regular:", page);
+        window.location.href = 'index.html';
+        return;
+    }
+
+    const isVaultOpen = new Date().getTime() >= TARGET_DATE;
+    if (isVaultOpen) return; // Si la bóveda está abierta, se permite el acceso a las páginas de productos
+
+    // Si la bóveda está cerrada y no es admin, solo permitimos las páginas base
     const allowedPages = [
         'index.html',
         '',
@@ -308,7 +332,7 @@ function checkPageAccess() {
     ];
 
     if (!allowedPages.includes(page)) {
-        console.warn("Acceso denegado a página restringida para usuario regular:", page);
+        console.warn("Acceso denegado a página restringida (bóveda cerrada):", page);
         window.location.href = 'index.html';
     }
 }
@@ -325,6 +349,7 @@ function startCountdown() {
 
         if (distance <= 0) {
             clearInterval(window.countdownInterval);
+            window.countdownInterval = null;
             countdownEl.innerHTML = '<span style="font-size: 24px; font-weight: 800; letter-spacing: 2px;">THE VAULT IS OPEN</span>';
             updateHeader(currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : null);
             return;
