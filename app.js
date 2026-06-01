@@ -23,6 +23,8 @@ let unsubscribeProducts = null;
 let unsubscribeUser = null;
 window.allLoadedProducts = [];
 
+const TARGET_DATE = new Date('May 31, 2026 23:00:00').getTime();
+
 // Inyectar el modal de detalles
 const detailModalHTML = `
 <div id="product-detail-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(10px);">
@@ -178,8 +180,11 @@ window.syncFavsToCloud = async () => {
 function updateHeader(username) {
     if (!authSection) return;
 
+    const isAdmin = currentUserRole === 'admin';
+    const isVaultOpen = new Date().getTime() >= TARGET_DATE;
+
     if (username) {
-        const adminTag = currentUserRole === 'admin' ? ' <span style="color:#666;font-size:12px;">(Admin)</span>' : '';
+        const adminTag = isAdmin ? ' <span style="color:#666;font-size:12px;">(Admin)</span>' : '';
         authSection.innerHTML = `
             <span style="color:#a3a3a3;font-size:14px;">Hello, ${username}${adminTag}</span>
             <button id="logout-btn" style="background:none;border:none;color:white;font-weight:bold;cursor:pointer;font-size:14px;">Log Out</button>
@@ -193,35 +198,35 @@ function updateHeader(username) {
 
     // Mostrar/ocultar elementos de admin
     if (addProductBtn) {
-        addProductBtn.style.display = (currentUserRole === 'admin') ? 'block' : 'none';
+        addProductBtn.style.display = isAdmin ? 'block' : 'none';
     }
     const adminOnlyElements = document.querySelectorAll('.admin-only');
     adminOnlyElements.forEach(el => {
-        el.style.display = (currentUserRole === 'admin') ? 'block' : 'none';
+        el.style.display = isAdmin ? 'block' : 'none';
     });
 
-    // Nuevo requerimiento: Ocultar barra de búsqueda, productos y menú a usuarios normales
-    const isAdmin = currentUserRole === 'admin';
-
+    // Barra de búsqueda y secciones visibles según el rol y si la bóveda está abierta
     const searchInput = document.getElementById('search-input');
     if (searchInput && searchInput.parentElement && searchInput.parentElement.parentElement) {
-        searchInput.parentElement.parentElement.style.visibility = isAdmin ? 'visible' : 'hidden';
+        searchInput.parentElement.parentElement.style.visibility = (isAdmin || isVaultOpen) ? 'visible' : 'hidden';
     }
 
     const catalogSection = document.getElementById('catalog');
     if (catalogSection) {
-        catalogSection.style.display = isAdmin ? 'block' : 'none';
+        catalogSection.style.display = (isAdmin || isVaultOpen) ? 'block' : 'none';
     }
 
     const cartSection = document.querySelector('.cart-section');
     if (cartSection) {
-        cartSection.style.display = isAdmin ? 'block' : 'none';
+        cartSection.style.display = (isAdmin || isVaultOpen) ? 'block' : 'none';
     }
 
+    // Habilitar menú desplegable (logo clickable) para todos si la bóveda está abierta
     const logo = document.querySelector('.logo');
     if (logo) {
-        logo.style.pointerEvents = isAdmin ? 'auto' : 'none';
-        logo.style.cursor = isAdmin ? 'pointer' : 'default';
+        const canClickLogo = isAdmin || isVaultOpen;
+        logo.style.pointerEvents = canClickLogo ? 'auto' : 'none';
+        logo.style.cursor = canClickLogo ? 'pointer' : 'default';
     }
 
     // Hero section logic
@@ -243,14 +248,76 @@ function updateHeader(username) {
             }
         }
     }
+
+    // Actualizar enlaces visibles del sidebar y forzar control de páginas
+    updateSidebarVisibility();
+    checkPageAccess();
+}
+
+function updateSidebarVisibility() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+
+    const isAdmin = currentUserRole === 'admin';
+    const categories = sidebar.querySelectorAll('.menu-category');
+
+    categories.forEach(cat => {
+        // Secciones exclusivas de administración
+        if (cat.classList.contains('admin-only')) {
+            cat.style.display = isAdmin ? 'block' : 'none';
+            return;
+        }
+
+        // Enlaces generales que el rol user sí puede ver
+        const hasVaultLink = cat.querySelector('a[href="index.html"]');
+        const hasFavoritesLink = cat.querySelector('a[href="Favorites.html"]');
+        const hasOrdersLink = cat.querySelector('a[href="Orders.html"]');
+        const hasCartLink = cat.querySelector('a[href="Cart.html"]');
+
+        const isAllowedUserLink = hasVaultLink || hasFavoritesLink || hasOrdersLink || hasCartLink;
+
+        if (isAdmin) {
+            cat.style.display = 'block';
+        } else {
+            if (isAllowedUserLink) {
+                cat.style.display = 'block';
+            } else {
+                // Ocultar categorías de productos (Designers, Men, Women, etc.)
+                cat.style.display = 'none';
+            }
+        }
+    });
+}
+
+function checkPageAccess() {
+    const isAdmin = currentUserRole === 'admin';
+    if (isAdmin) return; // Admin libre acceso
+
+    const path = window.location.pathname;
+    const page = path.split('/').pop().toLowerCase();
+
+    // Páginas permitidas para no-administradores
+    const allowedPages = [
+        'index.html',
+        '',
+        'login.html',
+        'register.html',
+        'cart.html',
+        'orders.html',
+        'favorites.html'
+    ];
+
+    if (!allowedPages.includes(page)) {
+        console.warn("Acceso denegado a página restringida para usuario regular:", page);
+        window.location.href = 'index.html';
+    }
 }
 
 function startCountdown() {
     const countdownEl = document.getElementById('hero-countdown');
     if (!countdownEl) return;
 
-    // June 1st of current year (2026)
-    const targetDate = new Date('May 31, 2026 23:00:00').getTime();
+    const targetDate = TARGET_DATE;
 
     const updateTimer = () => {
         const now = new Date().getTime();
@@ -259,6 +326,7 @@ function startCountdown() {
         if (distance <= 0) {
             clearInterval(window.countdownInterval);
             countdownEl.innerHTML = '<span style="font-size: 24px; font-weight: 800; letter-spacing: 2px;">THE VAULT IS OPEN</span>';
+            updateHeader(currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : null);
             return;
         }
 
