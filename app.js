@@ -250,7 +250,7 @@ function startCountdown() {
     if (!countdownEl) return;
 
     // June 1st of current year (2026)
-    const targetDate = new Date('June 1, 2026 00:00:00').getTime();
+    const targetDate = new Date('June 1, 2026 01:00:00').getTime();
 
     const updateTimer = () => {
         const now = new Date().getTime();
@@ -551,7 +551,7 @@ function openProductDetail(product) {
                 if (window.syncCartToCloud) window.syncCartToCloud();
                 if (window.updateCartBadge) window.updateCartBadge();
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     window.updateCartButtonState = (pid, size) => {
@@ -625,15 +625,15 @@ function openProductDetail(product) {
         const qtyEl = document.getElementById('detail-qty');
         if (!qtyEl) return;
         let qty = parseInt(qtyEl.textContent) || 1;
-        
+
         if (delta > 0 && qty >= stockVal) {
             alert(`Cannot increase quantity. Only ${stockVal} items available in stock.`);
             return;
         }
-        
+
         qty = Math.max(1, qty + delta);
         qtyEl.textContent = qty;
-        
+
         // If already in cart, update quantity live
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         const cartItemId = product.id + (window.selectedSize ? '-' + window.selectedSize : '');
@@ -676,7 +676,7 @@ function openProductDetail(product) {
             window.location.href = 'Cart.html';
         } else {
             const qty = parseInt(document.getElementById('detail-qty')?.textContent) || 1;
-            
+
             if (qty > stockVal) {
                 alert(`Cannot add to cart. Only ${stockVal} items available in stock.`);
                 return;
